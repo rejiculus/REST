@@ -2,39 +2,39 @@ package org.example.service.imp;
 
 import org.example.entity.Coffee;
 import org.example.repository.CoffeeRepository;
-import org.example.service.SimpleCrudService;
+import org.example.repository.OrderRepository;
+import org.example.service.dto.ICoffeeNoRefDTO;
 
 import java.util.List;
 
-public class CoffeeService implements SimpleCrudService<Coffee, Long> {
+public class CoffeeService {
     private final CoffeeRepository coffeeRepository;
+    private final OrderRepository orderRepository;
 
-    public CoffeeService(CoffeeRepository coffeeRepository) {
+    public CoffeeService(CoffeeRepository coffeeRepository, OrderRepository orderRepository) {
         this.coffeeRepository = coffeeRepository;
+        this.orderRepository = orderRepository;
     }
 
-    @Override
-    public Coffee create(Coffee coffee) {
+    public Coffee create(ICoffeeNoRefDTO coffeeDTO) {
+        Coffee coffee = coffeeDTO.toCoffee(orderRepository);
         return this.coffeeRepository.create(coffee);
     }
 
-    @Override
-    public Coffee update(Coffee coffee) {
+    public Coffee update(ICoffeeNoRefDTO coffeeDTO) {
+        Coffee coffee = coffeeDTO.toCoffee(orderRepository);
         return this.coffeeRepository.update(coffee);
     }
 
-    @Override
     public void delete(Long id) {
         this.coffeeRepository.delete(id);
 
     }
 
-    @Override
     public Coffee findById(Long id) {
         return this.coffeeRepository.findById(id);
     }
 
-    @Override
     public List<Coffee> findAll() {
         return this.coffeeRepository.findAll();
     }
