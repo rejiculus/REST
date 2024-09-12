@@ -2,6 +2,7 @@ package org.example.entity;
 
 import org.example.entity.exception.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,6 +12,11 @@ public class Barista {
     private List<Order> orderList;
     private Double tipSize;
 
+    public Barista() {
+        orderList = new ArrayList<>();
+        tipSize = 0.1;
+    }
+
     public Barista(Long id, String fullName, List<Order> orderList, Double tipSize) {
         this.id = id;
         this.fullName = fullName;
@@ -18,10 +24,16 @@ public class Barista {
         this.tipSize = tipSize;
     }
 
+    public Barista(String fullName, Double tipSize) {
+        this.fullName = fullName;
+        this.orderList = new ArrayList<>();
+        this.tipSize = tipSize;
+    }
+
     public Barista(String fullName, List<Order> orderList) {
         this.fullName = fullName;
         this.orderList = orderList;
-        tipSize=0.1;
+        tipSize = 0.1;
     }
 
     public Long getId() {
@@ -29,9 +41,9 @@ public class Barista {
     }
 
     public void setId(Long id) {
-        if(id == null)
+        if (id == null)
             throw new NullParamException();
-        if(id<0)
+        if (id < 0)
             throw new NoValidIdException(id);
 
         this.id = id;
@@ -42,9 +54,9 @@ public class Barista {
     }
 
     public void setFullName(String fullName) {
-        if(fullName ==null )
+        if (fullName == null)
             throw new NullParamException();
-        if(fullName.isEmpty())
+        if (fullName.isEmpty())
             throw new NoValidNameException();
 
         this.fullName = fullName;
@@ -55,7 +67,7 @@ public class Barista {
     }
 
     public void setOrderList(List<Order> orderList) {
-        if(orderList == null)
+        if (orderList == null)
             throw new NullParamException();
 
         this.orderList = orderList;
@@ -66,13 +78,13 @@ public class Barista {
     }
 
     public void setTipSize(Double tipSize) {
-        if(tipSize == null)
+        if (tipSize == null)
             throw new NullParamException();
-        if(tipSize.isNaN())
+        if (tipSize.isNaN())
             throw new NaNException();
-        if(tipSize.isInfinite())
+        if (tipSize.isInfinite())
             throw new InfiniteException();
-        if(tipSize < 0)
+        if (tipSize < 0)
             throw new LessZeroException(tipSize);
 
         this.tipSize = tipSize;
@@ -81,9 +93,8 @@ public class Barista {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Barista)) return false;
+        if (!(o instanceof Barista barista)) return false;
 
-        Barista barista = (Barista) o;
         return Objects.equals(getId(), barista.getId());
     }
 

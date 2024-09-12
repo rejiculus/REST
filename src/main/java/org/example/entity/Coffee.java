@@ -2,6 +2,7 @@ package org.example.entity;
 
 import org.example.entity.exception.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -10,6 +11,11 @@ public class Coffee {
     private String name;
     private Double price;
     private List<Order> orderList;
+
+    public Coffee() {
+        orderList = new ArrayList<>();
+        price = 0.0;
+    }
 
     public Coffee(Long id, String name, Double price, List<Order> orderList) {
         this.id = id;
@@ -28,7 +34,7 @@ public class Coffee {
     }
 
     public void setId(Long id) {
-        if(id == null)
+        if (id == null)
             throw new NullParamException();
         this.id = id;
     }
@@ -38,9 +44,9 @@ public class Coffee {
     }
 
     public void setName(String name) {
-        if(name == null)
+        if (name == null)
             throw new NullParamException();
-        if(name.isEmpty())
+        if (name.isEmpty())
             throw new NoValidNameException();
 
         this.name = name;
@@ -51,13 +57,13 @@ public class Coffee {
     }
 
     public void setPrice(Double price) {
-        if(price == null)
+        if (price == null)
             throw new NullParamException();
-        if(price.isNaN())
+        if (price.isNaN())
             throw new NaNException();
-        if(price.isInfinite())
+        if (price.isInfinite())
             throw new InfiniteException();
-        if(price < 0)
+        if (price < 0)
             throw new LessZeroException(price);
 
         this.price = price;
@@ -68,7 +74,7 @@ public class Coffee {
     }
 
     public void setOrderList(List<Order> orderList) {
-        if(orderList == null)
+        if (orderList == null)
             throw new NullParamException();
 
         this.orderList = orderList;
@@ -77,9 +83,8 @@ public class Coffee {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Coffee)) return false;
+        if (!(o instanceof Coffee coffee)) return false;
 
-        Coffee coffee = (Coffee) o;
         return Objects.equals(getId(), coffee.getId());
     }
 

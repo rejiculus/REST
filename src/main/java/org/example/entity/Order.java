@@ -3,6 +3,7 @@ package org.example.entity;
 import org.example.entity.exception.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,6 +14,11 @@ public class Order {
     private LocalDateTime created;
     private LocalDateTime completed;
     private Double price;
+
+    public Order() {
+        coffeeList = new ArrayList<>();
+        price = 0.0;
+    }
 
     public Order(Long id, Barista barista, List<Coffee> coffeeList, LocalDateTime created, LocalDateTime completed, Double price) {
         this.id = id;
@@ -33,9 +39,9 @@ public class Order {
     }
 
     public void setId(Long id) {
-        if(id == null)
+        if (id == null)
             throw new NullParamException();
-        if(id < 0)
+        if (id < 0)
             throw new NoValidIdException(id);
 
         this.id = id;
@@ -46,7 +52,7 @@ public class Order {
     }
 
     public void setBarista(Barista barista) {
-        if(barista == null)
+        if (barista == null)
             throw new NullParamException();
 
         this.barista = barista;
@@ -57,7 +63,7 @@ public class Order {
     }
 
     public void setCoffeeList(List<Coffee> coffeeList) {
-        if(coffeeList == null)
+        if (coffeeList == null)
             throw new NullParamException();
 
         this.coffeeList = coffeeList;
@@ -68,7 +74,7 @@ public class Order {
     }
 
     public void setCreated(LocalDateTime created) {
-        if(created == null)
+        if (created == null)
             throw new NullParamException();
 
         this.created = created;
@@ -79,11 +85,11 @@ public class Order {
     }
 
     public void setCompleted(LocalDateTime completed) {
-        if(completed == null)
+        if (completed == null)
             throw new NullParamException();
-        if(this.created == null)
+        if (this.created == null)
             throw new CreatedNotDefinedException();
-        if(completed.isBefore(this.created))
+        if (completed.isBefore(this.created))
             throw new CompletedBeforeCreatedException(this.created, completed);
 
         this.completed = completed;
@@ -94,13 +100,13 @@ public class Order {
     }
 
     public void setPrice(Double price) {
-        if(price == null)
+        if (price == null)
             throw new NullParamException();
-        if(price.isNaN())
+        if (price.isNaN())
             throw new NaNException();
-        if(price.isInfinite())
+        if (price.isInfinite())
             throw new InfiniteException();
-        if(price < 0)
+        if (price < 0)
             throw new LessZeroException(price);
 
         this.price = price;
@@ -109,9 +115,8 @@ public class Order {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Order)) return false;
+        if (!(o instanceof Order order)) return false;
 
-        Order order = (Order) o;
         return Objects.equals(getId(), order.getId());
     }
 
