@@ -2,10 +2,13 @@ package org.example.service.imp;
 
 import org.example.entity.Coffee;
 import org.example.entity.Order;
+import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
 import org.example.service.dto.IOrderNoRefDTO;
+import org.example.service.exception.OrderAlreadyCompletedException;
+import org.example.service.exception.OrderNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -22,22 +25,52 @@ public class OrderService {
         this.coffeeRepository = coffeeRepository;
     }
 
+    /**
+     * @param orderDTO
+     * @return
+     * @throws NullParamException
+     * @throws CreatedNotDefinedException
+     * @throws NoValidIdException
+     * @throws CompletedBeforeCreatedException
+     * @throws NoValidTipSizeException
+     */
     public Order create(IOrderNoRefDTO orderDTO) {
+        if (orderDTO == null)
+            throw new NullParamException();
+
         Order order = orderDTO.toOrder(baristaRepository, coffeeRepository);
-        order.setPrice(order.getCoffeeList()
-                .stream()
+
+        order.setPrice(order.getCoffeeList().stream()
                 .map(Coffee::getPrice)
                 .reduce(0.0, Double::sum, Double::sum));
         order.setCreated(LocalDateTime.now());
+
         return this.orderRepository.create(order);
     }
 
+    /**
+     * @param orderDTO
+     * @return
+     * @throws NullParamException
+     * @throws CreatedNotDefinedException
+     * @throws NoValidIdException
+     * @throws CompletedBeforeCreatedException
+     * @throws NoValidTipSizeException
+     */
     public Order update(IOrderNoRefDTO orderDTO) {
+        if (orderDTO == null)
+            throw new NullParamException();
+
         Order order = orderDTO.toOrder(baristaRepository, coffeeRepository);
         return this.orderRepository.update(order);
     }
 
     public void delete(Long id) {
+        if (id == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+
         this.orderRepository.delete(id);
     }
 
@@ -46,7 +79,13 @@ public class OrderService {
     }
 
     public Order findById(Long id) {
-        return this.orderRepository.findById(id);
+        if (id == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+
+        return this.orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
     }
 
     public List<Order> getOrderQueue() {
@@ -57,8 +96,18 @@ public class OrderService {
                 .toList();
     }
 
-    public Order completeOrder(IOrderNoRefDTO orderDTO) {
-        Order order = orderDTO.toOrder(baristaRepository, coffeeRepository);
+    public Order completeOrder(Long id) {
+        if (id == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+
+        if (order.getCompleted() != null)
+            throw new OrderAlreadyCompletedException(order);
+
         order.setCompleted(LocalDateTime.now());
         return this.orderRepository.update(order);
     }
