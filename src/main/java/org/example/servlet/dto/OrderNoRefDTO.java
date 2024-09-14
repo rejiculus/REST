@@ -1,10 +1,13 @@
 package org.example.servlet.dto;
 
+import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.service.dto.IOrderNoRefDTO;
+import org.example.service.exception.BaristaNotFoundException;
+import org.example.service.exception.CoffeeNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,15 +35,24 @@ public record OrderNoRefDTO(Long id,
 
     @Override
     public Order toOrder(BaristaRepository baristaRepository, CoffeeRepository coffeeRepository) {
-        return new Order(
-                id,
-                baristaRepository.findById(baristaId),
-                coffeeIdList.stream()
-                        .map(coffeeRepository::findById)
-                        .toList(),
-                created,
-                completed,
-                price
-        );
+        Barista barista = baristaRepository.findById(baristaId)
+                .orElseThrow(() -> new BaristaNotFoundException(baristaId));
+        List<Coffee> coffees = coffeeIdList.stream()
+                .map(coffeeId -> coffeeRepository.findById(coffeeId)
+                        .orElseThrow(() -> new CoffeeNotFoundException(coffeeId)))
+                .toList();
+
+        Order order = new Order(barista, coffees);
+
+        if (id != null)
+            order.setId(id);
+        if (created != null)
+            order.setCreated(created);
+        if (completed != null)
+            order.setCompleted(completed);
+        if (price != null)
+            order.setPrice(price);
+
+        return order;
     }
 }

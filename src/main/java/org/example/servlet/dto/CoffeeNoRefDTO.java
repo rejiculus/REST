@@ -4,6 +4,7 @@ import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.repository.OrderRepository;
 import org.example.service.dto.ICoffeeNoRefDTO;
+import org.example.service.exception.OrderNotFoundException;
 
 import java.util.List;
 
@@ -26,13 +27,16 @@ public record CoffeeNoRefDTO(Long id,
 
     @Override
     public Coffee toCoffee(OrderRepository orderRepository) {
-        return new Coffee(
-                id,
-                name,
-                price,
-                orderIdList.stream()
-                        .map(orderRepository::findById)
-                        .toList()
-        );
+        Coffee coffee = new Coffee(name, price);
+
+        if (id != null)
+            coffee.setId(id);
+        if (orderIdList != null && !orderIdList.isEmpty())
+            coffee.setOrderList(orderIdList.stream()
+                    .map(orderId -> orderRepository.findById(orderId)
+                            .orElseThrow(() -> new OrderNotFoundException(orderId)))
+                    .toList());
+
+        return coffee;
     }
 }
