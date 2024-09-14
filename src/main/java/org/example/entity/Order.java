@@ -15,29 +15,61 @@ public class Order {
     private LocalDateTime completed;
     private Double price;
 
-    public Order() {
-        coffeeList = new ArrayList<>();
-        price = 0.0;
-    }
-
+    /**
+     * @param id
+     * @param barista
+     * @param coffeeList
+     * @param created
+     * @param completed
+     * @param price
+     * @throws NullParamException
+     * @throws CreatedNotDefinedException
+     * @throws NoValidIdException
+     * @throws CompletedBeforeCreatedException
+     * @throws NoValidPriceException
+     */
     public Order(Long id, Barista barista, List<Coffee> coffeeList, LocalDateTime created, LocalDateTime completed, Double price) {
+        if (id == null || barista == null || coffeeList == null || price == null)
+            throw new NullParamException();
+        if (created == null)
+            throw new CreatedNotDefinedException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+        if (completed != null && completed.isBefore(created))
+            throw new CompletedBeforeCreatedException(created, completed);
+        if (price.isNaN() || price.isInfinite() || price < 0.0)
+            throw new NoValidPriceException(price);
+
         this.id = id;
         this.barista = barista;
-        this.coffeeList = coffeeList;
+        this.coffeeList = new ArrayList<>(coffeeList);
         this.created = created;
         this.completed = completed;
         this.price = price;
     }
 
+    /**
+     * @param barista
+     * @param coffeeList
+     * @throws NullParamException
+     */
     public Order(Barista barista, List<Coffee> coffeeList) {
+        if (barista == null || coffeeList == null)
+            throw new NullParamException();
+
         this.barista = barista;
-        this.coffeeList = coffeeList;
+        this.coffeeList = new ArrayList<>(coffeeList);
     }
 
     public Long getId() {
         return id;
     }
 
+    /**
+     * @param id
+     * @throws NullParamException
+     * @throws NoValidIdException
+     */
     public void setId(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -51,6 +83,10 @@ public class Order {
         return barista;
     }
 
+    /**
+     * @param barista
+     * @throws NullParamException
+     */
     public void setBarista(Barista barista) {
         if (barista == null)
             throw new NullParamException();
@@ -62,17 +98,25 @@ public class Order {
         return coffeeList;
     }
 
+    /**
+     * @param coffeeList
+     * @throws NullParamException
+     */
     public void setCoffeeList(List<Coffee> coffeeList) {
         if (coffeeList == null)
             throw new NullParamException();
 
-        this.coffeeList = coffeeList;
+        this.coffeeList = new ArrayList<>(coffeeList);
     }
 
     public LocalDateTime getCreated() {
         return created;
     }
 
+    /**
+     * @param created
+     * @throws NullParamException
+     */
     public void setCreated(LocalDateTime created) {
         if (created == null)
             throw new NullParamException();
@@ -84,12 +128,18 @@ public class Order {
         return completed;
     }
 
+    /**
+     * @param completed
+     * @throws NullParamException
+     * @throws CreatedNotDefinedException
+     * @throws CompletedBeforeCreatedException
+     */
     public void setCompleted(LocalDateTime completed) {
         if (completed == null)
             throw new NullParamException();
         if (this.created == null)
             throw new CreatedNotDefinedException();
-        if (completed.isBefore(this.created))
+        if (!completed.isAfter(this.created))
             throw new CompletedBeforeCreatedException(this.created, completed);
 
         this.completed = completed;
@@ -99,15 +149,16 @@ public class Order {
         return price;
     }
 
+    /**
+     * @param price
+     * @throws NullParamException
+     * @throws NoValidPriceException
+     */
     public void setPrice(Double price) {
         if (price == null)
             throw new NullParamException();
-        if (price.isNaN())
-            throw new NaNException();
-        if (price.isInfinite())
-            throw new InfiniteException();
-        if (price < 0)
-            throw new LessZeroException(price);
+        if (price.isNaN() || price.isInfinite() || price < 0.0)
+            throw new NoValidPriceException(price);
 
         this.price = price;
     }

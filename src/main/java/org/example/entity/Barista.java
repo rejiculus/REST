@@ -1,6 +1,9 @@
 package org.example.entity;
 
-import org.example.entity.exception.*;
+import org.example.entity.exception.NoValidIdException;
+import org.example.entity.exception.NoValidNameException;
+import org.example.entity.exception.NoValidTipSizeException;
+import org.example.entity.exception.NullParamException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,25 +15,81 @@ public class Barista {
     private List<Order> orderList;
     private Double tipSize;
 
-    public Barista() {
-        orderList = new ArrayList<>();
-        tipSize = 0.1;
-    }
-
+    /**
+     * @param id
+     * @param fullName
+     * @param orderList
+     * @param tipSize
+     * @throws NullParamException
+     * @throws NoValidIdException
+     * @throws NoValidNameException
+     * @throws NoValidTipSizeException
+     */
     public Barista(Long id, String fullName, List<Order> orderList, Double tipSize) {
+        if (id == null || fullName == null || orderList == null || tipSize == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+        if (fullName.isEmpty())
+            throw new NoValidNameException();
+        if (tipSize.isNaN() || tipSize.isInfinite() || tipSize < 0.0)
+            throw new NoValidTipSizeException(tipSize);
+
+
         this.id = id;
         this.fullName = fullName;
-        this.orderList = orderList;
+        this.orderList = new ArrayList<>(orderList);
         this.tipSize = tipSize;
     }
 
+    /**
+     * @param fullName
+     * @param tipSize
+     * @throws NullParamException
+     * @throws NoValidNameException
+     * @throws NoValidTipSizeException
+     */
     public Barista(String fullName, Double tipSize) {
+        if (fullName == null || tipSize == null)
+            throw new NullParamException();
+        if (fullName.isEmpty())
+            throw new NoValidNameException();
+        if (tipSize.isNaN() || tipSize.isInfinite() || tipSize < 0.0)
+            throw new NoValidTipSizeException(tipSize);
+
+        this.fullName = fullName;
+        this.tipSize = tipSize;
+        this.orderList = new ArrayList<>();
+    }
+
+    /**
+     * @param fullName
+     * @throws NullParamException
+     * @throws NoValidNameException
+     */
+    public Barista(String fullName) {
+        if (fullName == null)
+            throw new NullParamException();
+        if (fullName.isEmpty())
+            throw new NoValidNameException();
+
         this.fullName = fullName;
         this.orderList = new ArrayList<>();
-        this.tipSize = tipSize;
+        this.tipSize = 0.1;
     }
 
+    /**
+     * @param fullName
+     * @param orderList
+     * @throws NullParamException
+     * @throws NoValidNameException
+     */
     public Barista(String fullName, List<Order> orderList) {
+        if (fullName == null || orderList == null)
+            throw new NullParamException();
+        if (fullName.isEmpty())
+            throw new NoValidNameException();
+
         this.fullName = fullName;
         this.orderList = orderList;
         tipSize = 0.1;
@@ -40,6 +99,11 @@ public class Barista {
         return id;
     }
 
+    /**
+     * @param id
+     * @throws NullParamException
+     * @throws NoValidIdException
+     */
     public void setId(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -53,6 +117,11 @@ public class Barista {
         return fullName;
     }
 
+    /**
+     * @param fullName
+     * @throws NullParamException
+     * @throws NoValidNameException
+     */
     public void setFullName(String fullName) {
         if (fullName == null)
             throw new NullParamException();
@@ -66,26 +135,31 @@ public class Barista {
         return orderList;
     }
 
+    /**
+     * @param orderList
+     * @throws NullParamException
+     */
     public void setOrderList(List<Order> orderList) {
         if (orderList == null)
             throw new NullParamException();
 
-        this.orderList = orderList;
+        this.orderList = new ArrayList<>(orderList);
     }
 
     public Double getTipSize() {
         return tipSize;
     }
 
+    /**
+     * @param tipSize
+     * @throws NullParamException
+     * @throws NoValidTipSizeException
+     */
     public void setTipSize(Double tipSize) {
         if (tipSize == null)
             throw new NullParamException();
-        if (tipSize.isNaN())
-            throw new NaNException();
-        if (tipSize.isInfinite())
-            throw new InfiniteException();
-        if (tipSize < 0)
-            throw new LessZeroException(tipSize);
+        if (tipSize.isNaN() || tipSize.isInfinite() || tipSize < 0.0)
+            throw new NoValidTipSizeException(tipSize);
 
         this.tipSize = tipSize;
     }
@@ -110,4 +184,5 @@ public class Barista {
                 ", name='" + fullName + '\'' +
                 '}';
     }
+
 }

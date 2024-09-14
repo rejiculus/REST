@@ -1,6 +1,9 @@
 package org.example.entity;
 
-import org.example.entity.exception.*;
+import org.example.entity.exception.NoValidIdException;
+import org.example.entity.exception.NoValidNameException;
+import org.example.entity.exception.NoValidPriceException;
+import org.example.entity.exception.NullParamException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,30 +15,68 @@ public class Coffee {
     private Double price;
     private List<Order> orderList;
 
-    public Coffee() {
-        orderList = new ArrayList<>();
-        price = 0.0;
-    }
-
+    /**
+     * @param id
+     * @param name
+     * @param price
+     * @param orderList
+     * @throws NullParamException
+     * @throws NoValidIdException
+     * @throws NoValidNameException
+     * @throws NoValidPriceException
+     */
     public Coffee(Long id, String name, Double price, List<Order> orderList) {
+        if (id == null || name == null || price == null || orderList == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+        if (name.isEmpty())
+            throw new NoValidNameException();
+        if (price.isNaN() || price.isInfinite() || price < 0.0)
+            throw new NoValidPriceException(price);
+
         this.id = id;
         this.name = name;
         this.price = price;
-        this.orderList = orderList;
+        this.orderList = new ArrayList<>(orderList);
     }
 
+    /**
+     * @param name
+     * @param price
+     * @throws NullParamException
+     * @throws NoValidNameException
+     * @throws NoValidPriceException
+     */
     public Coffee(String name, Double price) {
+        if (name == null || price == null)
+            throw new NullParamException();
+        if (name.isEmpty())
+            throw new NoValidNameException();
+        if (price.isNaN() || price.isInfinite() || price < 0.0)
+            throw new NoValidPriceException(price);
+
+
         this.name = name;
         this.price = price;
+        this.orderList = new ArrayList<>();
     }
 
     public Long getId() {
         return id;
     }
 
+    /**
+     * @param id
+     * @throws NullParamException
+     * @throws NoValidIdException
+     */
     public void setId(Long id) {
         if (id == null)
             throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+
         this.id = id;
     }
 
@@ -43,6 +84,11 @@ public class Coffee {
         return name;
     }
 
+    /**
+     * @param name
+     * @throws NullParamException
+     * @throws NoValidNameException
+     */
     public void setName(String name) {
         if (name == null)
             throw new NullParamException();
@@ -56,15 +102,16 @@ public class Coffee {
         return price;
     }
 
+    /**
+     * @param price
+     * @throws NullParamException
+     * @throws NoValidPriceException
+     */
     public void setPrice(Double price) {
         if (price == null)
             throw new NullParamException();
-        if (price.isNaN())
-            throw new NaNException();
-        if (price.isInfinite())
-            throw new InfiniteException();
-        if (price < 0)
-            throw new LessZeroException(price);
+        if (price.isNaN() || price.isInfinite() || price < 0.0)
+            throw new NoValidPriceException(price);
 
         this.price = price;
     }
@@ -73,11 +120,15 @@ public class Coffee {
         return orderList;
     }
 
+    /**
+     * @param orderList
+     * @throws NullParamException
+     */
     public void setOrderList(List<Order> orderList) {
         if (orderList == null)
             throw new NullParamException();
 
-        this.orderList = orderList;
+        this.orderList = new ArrayList<>(orderList);
     }
 
     @Override
