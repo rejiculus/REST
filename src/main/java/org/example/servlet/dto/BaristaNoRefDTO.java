@@ -28,28 +28,4 @@ public record BaristaNoRefDTO(Long id,
         );
     }
 
-    /**
-     * @param orderRepository
-     * @return
-     * @throws NullParamException      from IBaristaNoRefDTO
-     * @throws NoValidIdException      from IBaristaNoRefDTO
-     * @throws NoValidNameException    from IBaristaNoRefDTO
-     * @throws NoValidTipSizeException from IBaristaNoRefDTO
-     */
-    @Override
-    public Barista toBarista(OrderRepository orderRepository) {
-        Barista barista = new Barista(fullName);
-
-        if (id != null)
-            barista.setId(id);
-        if (tipSize != null)
-            barista.setTipSize(tipSize);
-        if (orderIdList != null && !orderIdList.isEmpty())
-            barista.setOrderList(orderIdList.stream()
-                    .map(orderId -> orderRepository.findById(orderId)
-                            .orElseThrow(() -> new OrderNotFoundException(orderId)))
-                    .toList());
-
-        return barista;
-    }
 }

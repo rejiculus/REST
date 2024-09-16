@@ -32,27 +32,4 @@ public record OrderNoRefDTO(Long id,
                         .toList()
         );
     }
-
-    @Override
-    public Order toOrder(BaristaRepository baristaRepository, CoffeeRepository coffeeRepository) {
-        Barista barista = baristaRepository.findById(baristaId)
-                .orElseThrow(() -> new BaristaNotFoundException(baristaId));
-        List<Coffee> coffees = coffeeIdList.stream()
-                .map(coffeeId -> coffeeRepository.findById(coffeeId)
-                        .orElseThrow(() -> new CoffeeNotFoundException(coffeeId)))
-                .toList();
-
-        Order order = new Order(barista, coffees);
-
-        if (id != null)
-            order.setId(id);
-        if (created != null)
-            order.setCreated(created);
-        if (completed != null)
-            order.setCompleted(completed);
-        if (price != null)
-            order.setPrice(price);
-
-        return order;
-    }
 }

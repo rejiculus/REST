@@ -25,18 +25,4 @@ public record CoffeeNoRefDTO(Long id,
         );
     }
 
-    @Override
-    public Coffee toCoffee(OrderRepository orderRepository) {
-        Coffee coffee = new Coffee(name, price);
-
-        if (id != null)
-            coffee.setId(id);
-        if (orderIdList != null && !orderIdList.isEmpty())
-            coffee.setOrderList(orderIdList.stream()
-                    .map(orderId -> orderRepository.findById(orderId)
-                            .orElseThrow(() -> new OrderNotFoundException(orderId)))
-                    .toList());
-
-        return coffee;
-    }
 }
