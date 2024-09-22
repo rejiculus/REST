@@ -66,7 +66,6 @@ class CoffeeRepositoryImpTest {
         ConnectionManager connectionManager = Mockito.spy(new ConnectionManagerImp());
         CoffeeMapper mapper = Mockito.spy(new CoffeeMapper());
         Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connectionManager, mapper));
-//        Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp());
         Assertions.assertThrows(NullParamException.class, () -> new CoffeeRepositoryImp(connectionManager, null));
     }
 

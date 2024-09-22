@@ -185,10 +185,11 @@ class BaristaServletTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);
-        String specifiedJson = "{\n" +
-                "    \"fullName\":\"Name\",\n" +
-                "    \"tipSize\":0.5\n" +
-                "}";
+        String specifiedJson = """
+                {
+                    "fullName":"Name",
+                    "tipSize":0.5
+                }""";
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
 
         when(request.getReader())
@@ -226,18 +227,19 @@ class BaristaServletTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);
-        String specifiedJson = "{\n" +
-                "    \"fullName\": \"bbb\",\n" +
-                "    \"tipSize\": 0.2,\n" +
-                "    \"orderIdList\": []\n" +
-                "}";
+        String specifiedJson = """
+                {
+                    "fullName": "bbb",
+                    "tipSize": 0.2,
+                    "orderIdList": []
+                }""";
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
-        baristaRepository.create(new Barista("John Doe"));
+        Barista barista = baristaRepository.create(new Barista("John Doe"));
 
         when(request.getReader())
                 .thenReturn(bufferedReader);
         when(request.getPathInfo())
-                .thenReturn("/1");
+                .thenReturn("/"+barista.getId());
         when(response.getWriter())
                 .thenReturn(writer);
 

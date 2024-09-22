@@ -70,10 +70,10 @@ class OrderRepositoryImpTest {
 
     @Test
     void constructorsTest() {
-//        Assertions.assertDoesNotThrow(() -> new OrderRepositoryImp());
+        Connection connection = Mockito.mock(Connection.class);
         Assertions.assertDoesNotThrow(() -> new OrderRepositoryImp(connectionManager.getConnection(), mapper));
         Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(null, mapper));
-        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(connectionManager.getConnection(), null));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(connection, null));
         Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(null, null));
     }
 
@@ -222,17 +222,17 @@ class OrderRepositoryImpTest {
         barista = baristaRepository.create(barista);
         Order order = new Order(barista, List.of());
         order.setCreated(LocalDateTime.now());
-        Order specifiedOrder1 = orderRepository.create(order);
-        Order specifiedOrder2 = orderRepository.create(order);
+        orderRepository.create(order);
+        orderRepository.create(order);
 
         List<Order> resultOrderList = orderRepository.findAllByPage(0, 1);
-        assertTrue(resultOrderList.size() == 1);
+        assertEquals(1, resultOrderList.size());
 
         resultOrderList = orderRepository.findAllByPage(1, 1);
-        assertTrue(resultOrderList.size() == 1);
+        assertEquals(1, resultOrderList.size());
 
         resultOrderList = orderRepository.findAllByPage(0, 2);
-        assertTrue(resultOrderList.size() == 2);
+        assertEquals(2, resultOrderList.size());
     }
 
     @Test

@@ -2,11 +2,7 @@ package org.example.repository.mapper;
 
 import org.example.entity.Barista;
 import org.example.entity.Order;
-import org.example.entity.exception.NoValidNameException;
-import org.example.entity.exception.NoValidPriceException;
-import org.example.entity.exception.NullParamException;
 import org.example.repository.BaristaRepository;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -18,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 class OrderMapperTest {

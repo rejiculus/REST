@@ -229,12 +229,13 @@ class OrderServletTest {
         order.setCreated(LocalDateTime.now());
         order = orderRepository.create(order);
 
-        String specifiedJson = String.format("{\n" +
-                "    \"baristaId\":%d,\n" +
-                "    \"coffeeIdList\":[],\n" +
-                "    \"created\":\"2024-09-13 14:20:00\",\n" +
-                "    \"price\":0.0\n" +
-                "}", barista.getId());
+        String specifiedJson = String.format("""
+                {
+                    "baristaId":%d,
+                    "coffeeIdList":[],
+                    "created":"2024-09-13 14:20:00",
+                    "price":0.0
+                }""", barista.getId());
 
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
 
@@ -263,14 +264,15 @@ class OrderServletTest {
         barista = baristaRepository.create(barista);
         Order order = new Order(barista, List.of());
         order.setCreated(LocalDateTime.now());
-        order = orderRepository.create(order);
+        orderRepository.create(order);
 
-        String specifiedJson = String.format("{\n" +
-                "    \"baristaId\":%d,\n" +
-                "    \"coffeeIdList\":[],\n" +
-                "    \"created\":\"2024-09-13 14:20:00\",\n" +
-                "    \"price\":0.0\n" +
-                "}", barista.getId());
+        String specifiedJson = String.format("""
+                {
+                    "baristaId":%d,
+                    "coffeeIdList":[],
+                    "created":"2024-09-13 14:20:00",
+                    "price":0.0
+                }""", barista.getId());
 
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
 

@@ -197,8 +197,6 @@ class OrderServiceTest {
     //create
     @Test
     void createTest() {
-        Barista specifiedBarista = Mockito.spy(new Barista("NAME"));
-        Order specifiedOrder = Mockito.spy(new Order(specifiedBarista, new ArrayList<>()));
         OrderCreateDTO specifiedOrderDTO = Mockito.mock(OrderCreateDTO.class);
 
         Order expectedOrder = new Order(Mockito.mock(Barista.class), new ArrayList<>());
@@ -321,7 +319,6 @@ class OrderServiceTest {
 
     @Test
     void deleteWrongTest() {
-        //todo check id not found exception
         Assertions.assertThrows(NullParamException.class, () -> orderService.delete(null));
         Assertions.assertThrows(NoValidIdException.class, () -> orderService.delete(-1L));
     }

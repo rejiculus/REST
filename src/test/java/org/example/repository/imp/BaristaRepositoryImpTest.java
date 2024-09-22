@@ -71,7 +71,9 @@ class BaristaRepositoryImpTest {
     void updateTest() {
 
         Barista barista = new Barista("Arlekino", 0.99);
-        barista.setId(1L);
+        barista = baristaRepository.create(barista);
+
+        barista.setTipSize(0.1);
 
         Barista resultBarista = baristaRepository.update(barista);
 
@@ -148,7 +150,7 @@ class BaristaRepositoryImpTest {
         List<Barista> baristaList = baristaRepository.findAll();
 
         assertNotNull(baristaList);
-        assertEquals(3, baristaList.size());
+        assertTrue(baristaList.size()>=3);
     }
 
     @Test

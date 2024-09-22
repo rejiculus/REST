@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 class BaristaServiceTest {
@@ -191,7 +191,7 @@ class BaristaServiceTest {
     @Test
     void deleteWrongTest() {
         baristaService.delete(0L);
-        Mockito.verify(baristaRepository,Mockito.times(1)).delete(0L);
+        Mockito.verify(baristaRepository, Mockito.times(1)).delete(0L);
         Assertions.assertThrows(NullParamException.class, () -> baristaService.delete(null));
         Assertions.assertThrows(NoValidIdException.class, () -> baristaService.delete(-1L));
     }
