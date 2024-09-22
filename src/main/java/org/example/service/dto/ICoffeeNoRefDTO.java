@@ -1,8 +1,5 @@
 package org.example.service.dto;
 
-import org.example.entity.Coffee;
-import org.example.repository.OrderRepository;
-
 import java.util.List;
 
 public interface ICoffeeNoRefDTO {
@@ -14,5 +11,4 @@ public interface ICoffeeNoRefDTO {
 
     List<Long> orderIdList();
 
-    Coffee toCoffee(OrderRepository orderRepository);
 }

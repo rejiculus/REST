@@ -2,12 +2,12 @@ package org.example.service.dto;
 
 import java.util.List;
 
-public interface IBaristaNoRefDTO {
+public interface ICoffeeUpdateDTO extends IUpdateDTO {
     Long id();
 
-    String fullName();
+    String name();
 
-    Double tipSize();
+    Double price();
 
     List<Long> orderIdList();
 }
