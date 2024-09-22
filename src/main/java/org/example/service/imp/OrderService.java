@@ -6,23 +6,44 @@ import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
-import org.example.service.dto.IOrderNoRefDTO;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
+import org.example.repository.imp.BaristaRepositoryImp;
+import org.example.repository.imp.CoffeeRepositoryImp;
+import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.dto.IOrderCreateDTO;
+import org.example.service.dto.IOrderUpdateDTO;
 import org.example.service.exception.OrderAlreadyCompletedException;
-import org.example.service.exception.OrderNotFoundException;
+import org.example.service.mapper.OrderDtoToOrderMapper;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final BaristaRepository baristaRepository;
     private final CoffeeRepository coffeeRepository;
+    private final OrderDtoToOrderMapper mapper;
 
-    public OrderService(OrderRepository orderRepository, BaristaRepository baristaRepository, CoffeeRepository coffeeRepository) {
+
+    public OrderService(BaristaRepository baristaRepository, CoffeeRepository coffeeRepository, OrderRepository orderRepository) {
+        if (baristaRepository == null || orderRepository == null || coffeeRepository == null)
+            throw new NullParamException();
+
         this.orderRepository = orderRepository;
-        this.baristaRepository = baristaRepository;
         this.coffeeRepository = coffeeRepository;
+        this.mapper = new OrderDtoToOrderMapper(baristaRepository, coffeeRepository);
+    }
+
+    public OrderService(Connection connection) {
+        if (connection == null)
+            throw new NullParamException();
+
+        this.orderRepository = new OrderRepositoryImp(connection);
+        this.coffeeRepository = new CoffeeRepositoryImp(connection);
+        this.mapper = new OrderDtoToOrderMapper(new BaristaRepositoryImp(connection), coffeeRepository);
     }
 
     /**
@@ -34,16 +55,19 @@ public class OrderService {
      * @throws CompletedBeforeCreatedException
      * @throws NoValidTipSizeException
      */
-    public Order create(IOrderNoRefDTO orderDTO) {
+    public Order create(IOrderCreateDTO orderDTO) {
         if (orderDTO == null)
             throw new NullParamException();
 
-        Order order = orderDTO.toOrder(baristaRepository, coffeeRepository);
+        Order order = mapper.map(orderDTO);
 
-        order.setPrice(order.getCoffeeList().stream()
+        Double price = order.getCoffeeList().stream()
                 .map(Coffee::getPrice)
-                .reduce(0.0, Double::sum, Double::sum));
+                .reduce(0.0, Double::sum, Double::sum);
+
+        order.setPrice(price * (1.0 + order.getBarista().getTipSize()));
         order.setCreated(LocalDateTime.now());
+
 
         return this.orderRepository.create(order);
     }
@@ -57,12 +81,35 @@ public class OrderService {
      * @throws CompletedBeforeCreatedException
      * @throws NoValidTipSizeException
      */
-    public Order update(IOrderNoRefDTO orderDTO) {
+    public Order update(IOrderUpdateDTO orderDTO) {
         if (orderDTO == null)
             throw new NullParamException();
 
-        Order order = orderDTO.toOrder(baristaRepository, coffeeRepository);
-        return this.orderRepository.update(order);
+        Order order = mapper.map(orderDTO);
+
+        Double price = order.getCoffeeList().stream()
+                .map(Coffee::getPrice)
+                .reduce(0.0, Double::sum, Double::sum);
+        order.setPrice(price * (1.0 + order.getBarista().getTipSize()));
+
+        order = this.orderRepository.update(order);
+
+        //update order - coffee references
+        List<Coffee> expectedCoffeeList = coffeeRepository.findByOrderId(order.getId());
+        List<Coffee> actualCoffeeList = order.getCoffeeList();
+        List<Coffee> deletedCoffees = new ArrayList<>(expectedCoffeeList);
+        List<Coffee> addedCoffees = new ArrayList<>(actualCoffeeList);
+        deletedCoffees.removeAll(actualCoffeeList);
+        actualCoffeeList.removeAll(expectedCoffeeList);
+
+        for (Coffee coffee : deletedCoffees) {
+            orderRepository.deleteReference(order.getId(), coffee.getId());
+        }
+        for (Coffee coffee : addedCoffees) {
+            orderRepository.addReference(order.getId(), coffee.getId());
+        }
+
+        return order;
     }
 
     public void delete(Long id) {
@@ -72,28 +119,20 @@ public class OrderService {
             throw new NoValidIdException(id);
 
         this.orderRepository.delete(id);
-    }
 
-    public List<Order> findAll() {
-        return this.orderRepository.findAll();
-    }
-
-    public Order findById(Long id) {
-        if (id == null)
-            throw new NullParamException();
-        if (id < 0)
-            throw new NoValidIdException(id);
-
-        return this.orderRepository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException(id));
+        orderRepository.deletePairsByOrderId(id);
     }
 
     public List<Order> getOrderQueue() {
-        List<Order> orders = this.orderRepository.findAll();
-        return orders.stream()
+        List<Order> orderList = this.orderRepository.findAll();
+        orderList = orderList.stream()
                 .filter(order -> order.getCompleted() == null)
                 .sorted(Comparator.comparing(Order::getCreated))
                 .toList();
+        for (Order order : orderList) {
+            order.setCoffeeList(coffeeRepository.findByOrderId(order.getId()));
+        }
+        return orderList;
     }
 
     public Order completeOrder(Long id) {
@@ -109,6 +148,45 @@ public class OrderService {
             throw new OrderAlreadyCompletedException(order);
 
         order.setCompleted(LocalDateTime.now());
-        return this.orderRepository.update(order);
+        order = this.orderRepository.update(order);
+
+        order.setCoffeeList(coffeeRepository.findByOrderId(order.getId()));
+        return order;
     }
+
+    public List<Order> findAll() {
+        List<Order> orderList = this.orderRepository.findAll();
+        for (Order order : orderList) {
+            order.setCoffeeList(coffeeRepository.findByOrderId(order.getId()));
+        }
+        return orderList;
+    }
+
+    public Order findById(Long id) {
+        if (id == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
+
+        Order order = this.orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
+
+        order.setCoffeeList(coffeeRepository.findByOrderId(order.getId()));
+
+        return order;
+    }
+
+    public List<Order> findAllByPage(int page, int limit) {
+        if (page < 0)
+            throw new NoValidPageException(page);
+        if (limit <= 0)
+            throw new NoValidLimitException(limit);
+
+        List<Order> orderList = this.orderRepository.findAllByPage(page, limit);
+        for (Order order : orderList) {
+            order.setCoffeeList(coffeeRepository.findByOrderId(order.getId()));
+        }
+        return orderList;
+    }
+
 }
