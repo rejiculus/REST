@@ -10,6 +10,7 @@ import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
+import org.example.service.exception.CoffeeHasReferenceException;
 import org.example.service.imp.CoffeeService;
 import org.example.servlet.dto.CoffeeCreateDTO;
 import org.example.servlet.dto.CoffeePublicDTO;
@@ -32,6 +33,7 @@ public class CoffeeServlet extends SimpleServlet {
     private final transient Gson mapper;
 
     public static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    public static final String HAS_REF = "Has references: %s";
 
     public CoffeeServlet() throws SQLException {
         connectionManager = new ConnectionManagerImp();
@@ -202,6 +204,10 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format("Not found: %s", e.getMessage());
             log.severe(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch (CoffeeHasReferenceException e) {
+            String message = String.format(HAS_REF, e.getMessage());
+            log.severe(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         }
     }
 

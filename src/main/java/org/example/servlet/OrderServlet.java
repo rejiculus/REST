@@ -11,6 +11,7 @@ import org.example.db.ConnectionManagerImp;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
 import org.example.service.exception.OrderAlreadyCompletedException;
+import org.example.service.exception.OrderHasReferencesException;
 import org.example.service.imp.OrderService;
 import org.example.servlet.dto.OrderCreateDTO;
 import org.example.servlet.dto.OrderPublicDTO;
@@ -35,6 +36,7 @@ public class OrderServlet extends SimpleServlet {
 
     public static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
     public static final String NOT_FOUND = "Not found: %s";
+    public static final String HAS_REF = "Has references: %s";
 
     public OrderServlet() throws SQLException {
         connectionManager = new ConnectionManagerImp();
@@ -237,6 +239,10 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             log.severe(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        }catch (OrderHasReferencesException e) {
+            String message = String.format(HAS_REF, e.getMessage());
+            log.severe(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         }
     }
 
