@@ -7,7 +7,7 @@ import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ConnectionManagerImp implements ConnectionManager, Closeable {
+public class ConnectionManagerImp implements ConnectionManager {
     private HikariDataSource dataSource;
 
     public ConnectionManagerImp(String url, String username, String password, int maxPoolSize) {
@@ -50,7 +50,7 @@ public class ConnectionManagerImp implements ConnectionManager, Closeable {
         return dataSource.getConnection();
     }
 
-    @Override
+
     public void close() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
