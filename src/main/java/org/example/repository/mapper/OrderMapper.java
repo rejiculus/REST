@@ -5,7 +5,6 @@ import org.example.entity.Order;
 import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NullParamException;
 import org.example.repository.BaristaRepository;
-import org.example.repository.imp.BaristaRepositoryImp;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,10 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class OrderMapper implements SimpleMapper<Order> {
-    private BaristaRepository baristaRepository;
-
-    public OrderMapper() {
-    }
+    private final BaristaRepository baristaRepository;
 
     public OrderMapper(BaristaRepository baristaRepository) {
         this.baristaRepository = baristaRepository;
@@ -30,8 +26,6 @@ public class OrderMapper implements SimpleMapper<Order> {
             int priceColumn = resultSet.findColumn("price");
             int baristaColumn = resultSet.findColumn("barista");
 
-            if (baristaRepository == null)
-                baristaRepository = new BaristaRepositoryImp();
 
             Long id = resultSet.getLong(idColumn);
             Timestamp createTimestamp = resultSet.getTimestamp("created");
