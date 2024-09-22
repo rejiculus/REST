@@ -2,13 +2,7 @@ package org.example.servlet.dto;
 
 import org.example.entity.Barista;
 import org.example.entity.Order;
-import org.example.entity.exception.NoValidIdException;
-import org.example.entity.exception.NoValidNameException;
-import org.example.entity.exception.NoValidTipSizeException;
-import org.example.entity.exception.NullParamException;
-import org.example.repository.OrderRepository;
 import org.example.service.dto.IBaristaNoRefDTO;
-import org.example.service.exception.OrderNotFoundException;
 
 import java.util.List;
 
