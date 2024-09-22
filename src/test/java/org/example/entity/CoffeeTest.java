@@ -1,6 +1,9 @@
 package org.example.entity;
 
-import org.example.entity.exception.*;
+import org.example.entity.exception.NoValidIdException;
+import org.example.entity.exception.NoValidNameException;
+import org.example.entity.exception.NoValidPriceException;
+import org.example.entity.exception.NullParamException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +17,7 @@ class CoffeeTest {
     Random random = new Random();
 
     @Test
-    void allParamConstructorTest(){
+    void allParamConstructorTest() {
         Long expectedId = 99L;
         String expectedName = "Frapuchino";
         Double expectedPrice = 299.9;
@@ -27,8 +30,9 @@ class CoffeeTest {
         assertEquals(expectedPrice, coffee.getPrice());
         assertEquals(expectedOrderList, coffee.getOrderList());
     }
+
     @Test
-     void allParamConstructorWrongTest(){
+    void allParamConstructorWrongTest() {
         List<Order> inputOrders = new ArrayList<>();
 
         Assertions.assertThrows(NullParamException.class, () -> new Coffee(null, "Frapuchino", 199.9, inputOrders));
@@ -38,12 +42,11 @@ class CoffeeTest {
 
 
         //
-        for(int i=-5; i<5; i++){
+        for (int i = -5; i < 5; i++) {
             long finalI = i;
-            if(i<0) {
+            if (i < 0) {
                 Assertions.assertThrows(NoValidIdException.class, () -> new Coffee(finalI, "Frapuchino", 199.9, inputOrders));
-            }
-            else Assertions.assertDoesNotThrow(() -> new Coffee(finalI, "Frapuchino", 199.9, inputOrders));
+            } else Assertions.assertDoesNotThrow(() -> new Coffee(finalI, "Frapuchino", 199.9, inputOrders));
         }
 
         Assertions.assertThrows(NoValidNameException.class, () -> new Coffee(99L, "", 199.9, inputOrders));
@@ -56,19 +59,20 @@ class CoffeeTest {
     }
 
     @Test
-     void constructorTest(){
+    void constructorTest() {
         String expectedName = "Frapuchino";
         Double expectedPrice = 299.9;
 
         Coffee coffee = new Coffee(expectedName, expectedPrice);
 
-        assertNull(coffee.getId());
+        assertThrows(NoValidIdException.class, () -> coffee.getId());
         assertEquals(expectedName, coffee.getName());
         assertEquals(expectedPrice, coffee.getPrice());
         assertEquals(new ArrayList<>(), coffee.getOrderList());
     }
+
     @Test
-     void constructorWrongTest(){
+    void constructorWrongTest() {
         Assertions.assertThrows(NullParamException.class, () -> new Coffee(null, 199.9));
         Assertions.assertThrows(NullParamException.class, () -> new Coffee("Frapuchino", null));
 
@@ -82,42 +86,45 @@ class CoffeeTest {
 
 
     @Test
-    void getIdTest(){
-        for(int i=0;i<100;i++){
+    void getIdTest() {
+        for (int i = 0; i < 100; i++) {
             Long expectedId = random.nextLong(1000);
-            Coffee coffee =  new Coffee(expectedId, "Frapuchino", 199.9, new ArrayList<>());
+            Coffee coffee = new Coffee(expectedId, "Frapuchino", 199.9, new ArrayList<>());
             assertEquals(expectedId, coffee.getId());
         }
     }
+
     @Test
-    void setIdTest(){
-        Coffee coffee =  new Coffee("Frapuchino", 199.9);
-        for(int i=0;i<100;i++){
+    void setIdTest() {
+        Coffee coffee = new Coffee("Frapuchino", 199.9);
+        for (int i = 0; i < 100; i++) {
             Long expectedId = random.nextLong(1000);
             coffee.setId(expectedId);
             assertEquals(expectedId, coffee.getId());
         }
     }
+
     @Test
-    void setWrongIdTest(){
-        Coffee coffee =  new Coffee("Frapuchino", 199.9);
-        for(int i=-5;i<5;i++){
+    void setWrongIdTest() {
+        Coffee coffee = new Coffee("Frapuchino", 199.9);
+        for (int i = -5; i < 5; i++) {
             long finalI = i;
-            if(i<0)
-                Assertions.assertThrows(NoValidIdException.class, ()->coffee.setId(finalI));
+            if (i < 0)
+                Assertions.assertThrows(NoValidIdException.class, () -> coffee.setId(finalI));
             else
-                Assertions.assertDoesNotThrow(()->coffee.setId(finalI));
+                Assertions.assertDoesNotThrow(() -> coffee.setId(finalI));
         }
     }
 
     @Test
-     void getNameTest(){
+    void getNameTest() {
         String expectedName = "Ping pong";
-        Coffee coffee = new Coffee(expectedName,0.1);
+        Coffee coffee = new Coffee(expectedName, 0.1);
         assertEquals(expectedName, coffee.getName());
     }
+
     @Test
-     void setNameTest(){
+    void setNameTest() {
         Coffee coffee = new Coffee("John Doe", 0.1);
 
         coffee.setName("Kizaru");
@@ -129,57 +136,60 @@ class CoffeeTest {
         coffee.setName("Island");
         assertEquals("Island", coffee.getName());
     }
+
     @Test
-     void setWrongNameTest(){
+    void setWrongNameTest() {
         Coffee coffee = new Coffee("John Doe", 0.1);
 
-        Assertions.assertThrows(NullParamException.class, ()->coffee.setName(null));
-        Assertions.assertThrows(NoValidNameException.class, ()->coffee.setName(""));
+        Assertions.assertThrows(NullParamException.class, () -> coffee.setName(null));
+        Assertions.assertThrows(NoValidNameException.class, () -> coffee.setName(""));
     }
 
     @Test
-    void getPriceTest(){
-        for(int i=0;i<100;i++){
+    void getPriceTest() {
+        for (int i = 0; i < 100; i++) {
             Double val = random.nextDouble(2.0);
             Coffee coffee = new Coffee("John Doe", val);
             assertEquals(val, coffee.getPrice());
         }
     }
+
     @Test
-    void setPriceTest(){
+    void setPriceTest() {
         Coffee coffee = new Coffee("John Doe", 999.0);
-        for(int i=0;i<100;i++){
+        for (int i = 0; i < 100; i++) {
             Double val = random.nextDouble(999999.999999);
             coffee.setPrice(val);
             assertEquals(val, coffee.getPrice());
         }
     }
+
     @Test
-    void setWrongPriceTest(){
-        Assertions.assertThrows(NullParamException.class, ()-> new Coffee("John Doe",(Double) null));
-        Assertions.assertThrows(NoValidPriceException.class, ()-> new Coffee("John Doe",-0.0001));
-        Assertions.assertThrows(NoValidPriceException.class, ()-> new Coffee("John Doe",Double.NEGATIVE_INFINITY));
-        Assertions.assertThrows(NoValidPriceException.class, ()-> new Coffee("John Doe",Double.POSITIVE_INFINITY));
-        Assertions.assertThrows(NoValidPriceException.class, ()-> new Coffee("John Doe",Double.NaN));
+    void setWrongPriceTest() {
+        Assertions.assertThrows(NullParamException.class, () -> new Coffee("John Doe", (Double) null));
+        Assertions.assertThrows(NoValidPriceException.class, () -> new Coffee("John Doe", -0.0001));
+        Assertions.assertThrows(NoValidPriceException.class, () -> new Coffee("John Doe", Double.NEGATIVE_INFINITY));
+        Assertions.assertThrows(NoValidPriceException.class, () -> new Coffee("John Doe", Double.POSITIVE_INFINITY));
+        Assertions.assertThrows(NoValidPriceException.class, () -> new Coffee("John Doe", Double.NaN));
     }
 
 
-
     @Test
-    void getOrderListList(){
+    void getOrderListList() {
         Coffee coffee = new Coffee("John Doe", 999.0);
 
         assertEquals(new ArrayList<Order>(), coffee.getOrderList());
     }
+
     @Test
-    void setOrderListList(){
+    void setOrderListList() {
         List<Order> orders = new ArrayList<>();
         Barista barista = new Barista("John Doe", 0.1);
         Coffee coffee = new Coffee("John Doe", 999.0);
 
-        orders.add(new Order(barista,new ArrayList<>(List.of(coffee,coffee))));
-        orders.add(new Order(barista,new ArrayList<>(List.of(coffee,coffee,coffee))));
-        orders.add(new Order(barista,new ArrayList<>(List.of(coffee,coffee,coffee,coffee))));
+        orders.add(new Order(barista, new ArrayList<>(List.of(coffee, coffee))));
+        orders.add(new Order(barista, new ArrayList<>(List.of(coffee, coffee, coffee))));
+        orders.add(new Order(barista, new ArrayList<>(List.of(coffee, coffee, coffee, coffee))));
 
         coffee.setOrderList(orders);
 
@@ -190,15 +200,16 @@ class CoffeeTest {
         assertNotEquals(orders, coffee.getOrderList());
 
     }
+
     @Test
-    void setWrongOrderListList(){
+    void setWrongOrderListList() {
         Coffee coffee = new Coffee("John Doe", 999.0);
 
-        Assertions.assertThrows(NullParamException.class, ()-> coffee.setOrderList(null));
+        Assertions.assertThrows(NullParamException.class, () -> coffee.setOrderList(null));
     }
 
     @Test
-    void equalsTest(){
+    void equalsTest() {
         Coffee coffee1 = new Coffee(0L, "John Doe", 199.0, new ArrayList<>());
         Coffee coffee2 = new Coffee(0L, "John Doe", 129.0, new ArrayList<>());
         Coffee coffee3 = new Coffee(0L, "Wow", 439.0, new ArrayList<>());
@@ -210,8 +221,9 @@ class CoffeeTest {
         assertNotEquals(null, coffee1);
         assertNotEquals(new Object(), coffee1);
     }
+
     @Test
-    void  hashCodeTest(){
+    void hashCodeTest() {
         Coffee coffee1 = new Coffee(0L, "John Doe", 199.0, new ArrayList<>());
         Coffee coffee2 = new Coffee(0L, "John Doe", 129.0, new ArrayList<>());
         Coffee coffee3 = new Coffee(0L, "Wow", 439.0, new ArrayList<>());

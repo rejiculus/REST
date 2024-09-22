@@ -1,24 +1,24 @@
 package org.example.service.imp;
 
+import org.example.db.DatabaseConfig;
 import org.example.entity.Coffee;
-import org.example.entity.exception.NoValidIdException;
-import org.example.entity.exception.NoValidNameException;
-import org.example.entity.exception.NoValidPriceException;
-import org.example.entity.exception.NullParamException;
+import org.example.entity.exception.*;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
-import org.example.service.exception.CoffeeAlreadyExistException;
-import org.example.service.exception.CoffeeNotFoundException;
-import org.example.servlet.dto.CoffeeNoRefDTO;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
+import org.example.service.mapper.CoffeeDtoToCoffeeMapper;
+import org.example.servlet.dto.CoffeeCreateDTO;
+import org.example.servlet.dto.CoffeeUpdateDTO;
+import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.utility.MountableFile;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,23 +26,51 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CoffeeServiceTest {
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine3.20")
+            .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
+                    "/docker-entrypoint-initdb.d/01-schema.sql");
     static AutoCloseable mocks;
-    @Spy
-    OrderRepository orderRepository;
-    @Spy
+    @Mock
+    static CoffeeDtoToCoffeeMapper mapper;
+    @Mock
     CoffeeRepository coffeeRepository;
+    @Mock
+    OrderRepository orderRepository;
 
-    @InjectMocks
     CoffeeService coffeeService;
+
+    @BeforeAll
+    static void beforeAll() {
+        postgres.start();
+        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
+        DatabaseConfig.setUsername(postgres.getUsername());
+        DatabaseConfig.setPassword(postgres.getPassword());
+    }
 
     @BeforeEach
     public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
+        coffeeService = new CoffeeService(
+                orderRepository,
+                coffeeRepository
+        );
     }
 
     @AfterAll
     public static void close() throws Exception {
         mocks.close();
+        postgres.stop();
+    }
+
+    @Test
+    void constructorsTest() {
+        Connection connection = Mockito.mock(Connection.class);
+        Assertions.assertDoesNotThrow(() -> new CoffeeService(orderRepository, coffeeRepository));
+        Assertions.assertDoesNotThrow(() -> new CoffeeService(connection));
+        Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(orderRepository, null));
+        Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(null, coffeeRepository));
+        Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(null));
     }
 
     @Test
@@ -95,15 +123,12 @@ class CoffeeServiceTest {
 
     @Test
     void createTest() {
-        Coffee specifiedCoffee = Mockito.mock(Coffee.class);
-        CoffeeNoRefDTO specifiedCoffeeDTO = Mockito.mock(CoffeeNoRefDTO.class);
+        CoffeeCreateDTO specifiedCoffeeDTO = new CoffeeCreateDTO("name", 0.1);
 
         Coffee expectedCoffee = new Coffee("Frapuchinno", 99.9);
         expectedCoffee.setId(99L);
 
-        Mockito.when(specifiedCoffeeDTO.toCoffee(orderRepository))
-                .thenReturn(specifiedCoffee);
-        Mockito.when(coffeeRepository.create(specifiedCoffee))
+        Mockito.when(coffeeRepository.create(Mockito.argThat(coffee -> coffee.getName().equals(specifiedCoffeeDTO.name()))))
                 .thenReturn(expectedCoffee);
 
 
@@ -114,43 +139,23 @@ class CoffeeServiceTest {
 
     @Test
     void createWrongTest() {
-        Coffee specifiedCoffee = Mockito.mock(Coffee.class);
-        CoffeeNoRefDTO coffeeDTONull = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidId = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidName = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidPrice = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTOAlreadyExist = Mockito.mock(CoffeeNoRefDTO.class);
+        CoffeeCreateDTO coffeeDTONull = new CoffeeCreateDTO(null, 0.1);
+        CoffeeCreateDTO coffeeDTONoValidName = new CoffeeCreateDTO("", 0.1);
+        CoffeeCreateDTO coffeeDTONoValidPrice = new CoffeeCreateDTO("name", -0.1);
 
-
-        Mockito.when(coffeeDTONull.toCoffee(orderRepository))
-                .thenThrow(NullParamException.class);
-        Mockito.when(coffeeDTONoValidId.toCoffee(orderRepository))
-                .thenThrow(NoValidIdException.class);
-        Mockito.when(coffeeDTONoValidName.toCoffee(orderRepository))
-                .thenThrow(NoValidNameException.class);
-        Mockito.when(coffeeDTONoValidPrice.toCoffee(orderRepository))
-                .thenThrow(NoValidPriceException.class);
-        Mockito.when(coffeeDTOAlreadyExist.toCoffee(orderRepository))
-                .thenReturn(specifiedCoffee);
-        Mockito.when(coffeeRepository.create(specifiedCoffee))
-                .thenThrow(new CoffeeAlreadyExistException(0L));
 
         Assertions.assertThrows(NullParamException.class, () -> coffeeService.create(coffeeDTONull));
         Assertions.assertThrows(NullParamException.class, () -> coffeeService.create(null));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeService.create(coffeeDTONoValidId));
         Assertions.assertThrows(NoValidNameException.class, () -> coffeeService.create(coffeeDTONoValidName));
         Assertions.assertThrows(NoValidPriceException.class, () -> coffeeService.create(coffeeDTONoValidPrice));
-        Assertions.assertThrows(CoffeeAlreadyExistException.class, () -> coffeeService.create(coffeeDTOAlreadyExist));
     }
 
     @Test
     void updateTest() {
         Coffee specifiedCoffee = Mockito.mock(Coffee.class);
-        CoffeeNoRefDTO specifiedCoffeeDTO = Mockito.mock(CoffeeNoRefDTO.class);
+        CoffeeUpdateDTO specifiedCoffeeDTO = new CoffeeUpdateDTO(0L, "name", 0.1, List.of());
 
-        Mockito.when(specifiedCoffeeDTO.toCoffee(orderRepository))
-                .thenReturn(specifiedCoffee);
-        Mockito.when(coffeeRepository.update(specifiedCoffee))
+        Mockito.when(coffeeRepository.update(Mockito.argThat(coffee -> coffee.getName().equals(specifiedCoffeeDTO.name()))))
                 .thenReturn(specifiedCoffee);
 
         Coffee resultCoffee = coffeeService.update(specifiedCoffeeDTO);
@@ -160,26 +165,15 @@ class CoffeeServiceTest {
 
     @Test
     void updateWrongTest() {
-        Coffee specifiedCoffee = Mockito.mock(Coffee.class);
-        CoffeeNoRefDTO coffeeDTONull = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidId = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidName = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONoValidPrice = Mockito.mock(CoffeeNoRefDTO.class);
-        CoffeeNoRefDTO coffeeDTONotFound = Mockito.mock(CoffeeNoRefDTO.class);
+        CoffeeUpdateDTO coffeeDTONull = new CoffeeUpdateDTO(null, "name", 0.1, List.of());
+        CoffeeUpdateDTO coffeeDTONoValidId = new CoffeeUpdateDTO(-1L, "name", 0.1, List.of());
+        CoffeeUpdateDTO coffeeDTONoValidName = new CoffeeUpdateDTO(0L, "", 0.1, List.of());
+        CoffeeUpdateDTO coffeeDTONoValidPrice = new CoffeeUpdateDTO(0L, "name", -0.1, List.of());
+        CoffeeUpdateDTO coffeeDTONotFound = new CoffeeUpdateDTO(0L, "name", 0.1, List.of());
 
-
-        Mockito.when(coffeeDTONotFound.toCoffee(orderRepository))
-                .thenReturn(specifiedCoffee);
-        Mockito.when(coffeeDTONull.toCoffee(orderRepository))
-                .thenThrow(NullParamException.class);
-        Mockito.when(coffeeDTONoValidId.toCoffee(orderRepository))
-                .thenThrow(NoValidIdException.class);
-        Mockito.when(coffeeDTONoValidName.toCoffee(orderRepository))
-                .thenThrow(NoValidNameException.class);
-        Mockito.when(coffeeDTONoValidPrice.toCoffee(orderRepository))
-                .thenThrow(NoValidPriceException.class);
-        Mockito.when(coffeeRepository.update(specifiedCoffee))
+        Mockito.when(coffeeRepository.update(Mockito.argThat(coffee -> coffee.getId().equals(0L))))
                 .thenThrow(CoffeeNotFoundException.class);
+
 
         Assertions.assertThrows(NullParamException.class, () -> coffeeService.update(coffeeDTONull));
         Assertions.assertThrows(NullParamException.class, () -> coffeeService.update(null));
@@ -201,9 +195,41 @@ class CoffeeServiceTest {
 
     @Test
     void deleteWrongTest() {
-        //todo check id not found exception
         Assertions.assertThrows(NullParamException.class, () -> coffeeService.delete(null));
         Assertions.assertThrows(NoValidIdException.class, () -> coffeeService.delete(-1L));
     }
 
+    @Test
+    void findAllByPageTest() {
+        List<Coffee> specifiedCoffeeListPage0 = new ArrayList<>(List.of(
+                Mockito.mock(Coffee.class),
+                Mockito.mock(Coffee.class),
+                Mockito.mock(Coffee.class),
+                Mockito.mock(Coffee.class)
+        ));
+        List<Coffee> specifiedCoffeeListPage1 = new ArrayList<>(List.of(
+                Mockito.mock(Coffee.class),
+                Mockito.mock(Coffee.class),
+                Mockito.mock(Coffee.class)
+        ));
+
+        Mockito.when(coffeeRepository.findAllByPage(0, 4))
+                .thenReturn(specifiedCoffeeListPage0);
+
+        Mockito.when(coffeeRepository.findAllByPage(1, 4))
+                .thenReturn(specifiedCoffeeListPage1);
+
+        List<Coffee> resultCoffeeList = coffeeService.findAllByPage(0, 4);
+        assertEquals(specifiedCoffeeListPage0, resultCoffeeList);
+
+        resultCoffeeList = coffeeService.findAllByPage(1, 4);
+        assertEquals(specifiedCoffeeListPage1, resultCoffeeList);
+    }
+
+    @Test
+    void findAllByPageWrongTest() {
+        Assertions.assertThrows(NoValidPageException.class, () -> coffeeService.findAllByPage(-1, 1));
+        Assertions.assertThrows(NoValidLimitException.class, () -> coffeeService.findAllByPage(0, 0));
+        Assertions.assertThrows(NoValidLimitException.class, () -> coffeeService.findAllByPage(0, -1));
+    }
 }

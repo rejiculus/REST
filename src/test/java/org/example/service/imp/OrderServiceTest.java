@@ -1,24 +1,27 @@
 package org.example.service.imp;
 
 import org.example.entity.Barista;
+import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
 import org.example.service.exception.OrderAlreadyCompletedException;
-import org.example.service.exception.OrderAlreadyExistException;
-import org.example.service.exception.OrderNotFoundException;
-import org.example.servlet.dto.OrderNoRefDTO;
+import org.example.service.mapper.OrderDtoToOrderMapper;
+import org.example.servlet.dto.OrderCreateDTO;
+import org.example.servlet.dto.OrderUpdateDTO;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,22 +29,32 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 
 class OrderServiceTest {
     static AutoCloseable mocks;
-    @Spy
-    BaristaRepository baristaRepository;
-    @Spy
+
+    @Mock
     OrderRepository orderRepository;
-    @Spy
+    @Mock
+    BaristaRepository baristaRepository;
+    @Mock
     CoffeeRepository coffeeRepository;
 
-    @InjectMocks
+    @Mock
+    OrderDtoToOrderMapper mapper;
+
     OrderService orderService;
 
     @BeforeEach
     public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
+        orderService = new OrderService(
+                baristaRepository,
+                coffeeRepository,
+                orderRepository
+        );
     }
 
     @AfterAll
@@ -49,6 +62,16 @@ class OrderServiceTest {
         mocks.close();
     }
 
+    @Test
+    void constructorsTest() {
+        Connection connection = Mockito.mock(Connection.class);
+        Assertions.assertDoesNotThrow(() -> new OrderService(baristaRepository, coffeeRepository, orderRepository));
+        Assertions.assertDoesNotThrow(() -> new OrderService(connection));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderService(null));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderService(null, coffeeRepository, orderRepository));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderService(baristaRepository, null, orderRepository));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderService(baristaRepository, coffeeRepository, null));
+    }
 
     @Test
     void findAllTest() {
@@ -115,9 +138,10 @@ class OrderServiceTest {
         ));
         for (int i = 0; i < specifiedOrderList.size(); i++) {
             Order order = specifiedOrderList.get(i);
+            order.setId((long) i);
             order.setCreated(LocalDateTime.now());
             if (i % 2 == 0)
-                order.setCompleted(LocalDateTime.now().plusMinutes(i * 3+1));
+                order.setCompleted(LocalDateTime.now().plusMinutes(i * 3 + 1));
 
             specifiedOrderList.set(i, order);
         }
@@ -173,15 +197,30 @@ class OrderServiceTest {
     //create
     @Test
     void createTest() {
-        Order specifiedOrder = Mockito.mock(Order.class);
-        OrderNoRefDTO specifiedOrderDTO = Mockito.mock(OrderNoRefDTO.class);
+        Barista specifiedBarista = Mockito.spy(new Barista("NAME"));
+        Order specifiedOrder = Mockito.spy(new Order(specifiedBarista, new ArrayList<>()));
+        OrderCreateDTO specifiedOrderDTO = Mockito.mock(OrderCreateDTO.class);
 
         Order expectedOrder = new Order(Mockito.mock(Barista.class), new ArrayList<>());
         expectedOrder.setId(99L);
 
-        Mockito.when(specifiedOrderDTO.toOrder(baristaRepository, coffeeRepository))
-                .thenReturn(specifiedOrder);
-        Mockito.when(orderRepository.create(specifiedOrder))
+        Long specificBaristaId = 0L;
+        Long specificCoffeeId = 0L;
+        Coffee specificCoffee = Mockito.spy(new Coffee(0L, "name", 0.0, List.of()));
+        Barista specificBarista = Mockito.spy(new Barista(0L, "name", List.of(), 0.1));
+        List<Long> specificCoffeeIdList = List.of(specificCoffeeId);
+
+        Mockito.when(specifiedOrderDTO.baristaId())
+                .thenReturn(specificBaristaId);
+        Mockito.when(baristaRepository.findById(specificBaristaId))
+                .thenReturn(Optional.of(specificBarista));
+
+        Mockito.when(specifiedOrderDTO.coffeeIdList())
+                .thenReturn(specificCoffeeIdList);
+        Mockito.when(coffeeRepository.findById(specificCoffeeId))
+                .thenReturn(Optional.of(specificCoffee));
+
+        Mockito.when(orderRepository.create(any()))
                 .thenReturn(expectedOrder);
 
         Order resultOrder = orderService.create(specifiedOrderDTO);
@@ -191,49 +230,38 @@ class OrderServiceTest {
 
     @Test
     void createWrongTest() {
-        Order specifiedOrder = Mockito.mock(Order.class);
-        OrderNoRefDTO orderDTONull = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTONoValidId = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTOCreateNotDef = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTOBeforeComplete = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTONoValidPrice = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTOExist = Mockito.mock(OrderNoRefDTO.class);
 
 
-        Mockito.when(orderDTONull.toOrder(baristaRepository, coffeeRepository))
+        OrderCreateDTO orderDTONull = Mockito.mock(OrderCreateDTO.class);
+        Mockito.when(orderDTONull.baristaId())
+                .thenReturn(null);
+        Mockito.when(orderDTONull.coffeeIdList())
+                .thenReturn(null);
+        Mockito.when(baristaRepository.findById(null))
                 .thenThrow(NullParamException.class);
-        Mockito.when(orderDTONoValidId.toOrder(baristaRepository, coffeeRepository))
-                .thenThrow(NoValidIdException.class);
-        Mockito.when(orderDTOCreateNotDef.toOrder(baristaRepository, coffeeRepository))
-                .thenThrow(CreatedNotDefinedException.class);
-        Mockito.when(orderDTOBeforeComplete.toOrder(baristaRepository, coffeeRepository))
-                .thenThrow(CompletedBeforeCreatedException.class);
-        Mockito.when(orderDTONoValidPrice.toOrder(baristaRepository, coffeeRepository))
-                .thenThrow(NoValidPriceException.class);
-        Mockito.when(orderDTOExist.toOrder(baristaRepository, coffeeRepository))
-                .thenReturn(specifiedOrder);
-        Mockito.when(orderRepository.create(specifiedOrder))
-                .thenThrow(new OrderAlreadyExistException(0L));
 
-        Assertions.assertThrows(NullParamException.class, () -> orderService.create(orderDTONull));
+
         Assertions.assertThrows(NullParamException.class, () -> orderService.create(null));
-        Assertions.assertThrows(NoValidIdException.class, () -> orderService.create(orderDTONoValidId));
-        Assertions.assertThrows(CreatedNotDefinedException.class, () -> orderService.create(orderDTOCreateNotDef));
-        Assertions.assertThrows(NoValidPriceException.class, () -> orderService.create(orderDTONoValidPrice));
-        Assertions.assertThrows(CompletedBeforeCreatedException.class, () -> orderService.create(orderDTOBeforeComplete));
-        Assertions.assertThrows(OrderAlreadyExistException.class, () -> orderService.create(orderDTOExist));
+        Assertions.assertThrows(NullParamException.class, () -> orderService.create(orderDTONull));
     }
 
     //update
     @Test
     void updateTest() {
-        Order specifiedOrder = Mockito.mock(Order.class);
-        OrderNoRefDTO specifiedOrderDTO = Mockito.mock(OrderNoRefDTO.class);
 
-        Mockito.when(specifiedOrderDTO.toOrder(baristaRepository, coffeeRepository))
+        Coffee specificCoffee = Mockito.spy(new Coffee(0L, "name", 0.0, List.of()));
+        Barista specificBarista = Mockito.spy(new Barista(0L, "name", List.of(), 0.1));
+        Order specifiedOrder = Mockito.mock(Order.class);
+        OrderUpdateDTO specifiedOrderDTO = Mockito.spy(new OrderUpdateDTO(0L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, 0.0, List.of(0L)));
+
+        Mockito.when(orderRepository.update(any()))
                 .thenReturn(specifiedOrder);
-        Mockito.when(orderRepository.update(specifiedOrder))
-                .thenReturn(specifiedOrder);
+        Mockito.when(specifiedOrder.getId())
+                .thenReturn(0L);
+        Mockito.when(baristaRepository.findById(0L))
+                .thenReturn(Optional.of(specificBarista));
+        Mockito.when(coffeeRepository.findById(0L))
+                .thenReturn(Optional.of(specificCoffee));
 
         Order resultOrder = orderService.update(specifiedOrderDTO);
 
@@ -243,27 +271,33 @@ class OrderServiceTest {
     @Test
     void updateWrongTest() {
         Order specifiedOrder = Mockito.mock(Order.class);
-        OrderNoRefDTO orderDTONull = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTONoValidId = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTOCreateNotDef = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTOBeforeComplete = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTONoValidPrice = Mockito.mock(OrderNoRefDTO.class);
-        OrderNoRefDTO orderDTONotFound = Mockito.mock(OrderNoRefDTO.class);
+        Barista specificBarista = Mockito.mock(Barista.class);
+        Coffee specificCoffee = Mockito.mock(Coffee.class);
+        OrderUpdateDTO orderDTONull = Mockito.spy(new OrderUpdateDTO(null, 0L, LocalDateTime.MIN, LocalDateTime.MAX, 0.0, List.of(0L)));
+        OrderUpdateDTO orderDTONoValidId = Mockito.spy(new OrderUpdateDTO(-1L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, 0.0, List.of(0L)));
+        OrderUpdateDTO orderDTOCreateNotDef = Mockito.spy(new OrderUpdateDTO(0L, 0L, null, LocalDateTime.MAX, 0.0, List.of(0L)));
+        OrderUpdateDTO orderDTOBeforeComplete = Mockito.spy(new OrderUpdateDTO(0L, 0L, LocalDateTime.MAX, LocalDateTime.MIN, 0.0, List.of(0L)));
+        OrderUpdateDTO orderDTONoValidPrice = Mockito.spy(new OrderUpdateDTO(0L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, -1.0, List.of(0L)));
+        OrderUpdateDTO orderDTONotFound = Mockito.spy(new OrderUpdateDTO(99L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, 1.0, List.of(0L)));
 
-
-        Mockito.when(orderDTONull.toOrder(baristaRepository, coffeeRepository))
-                .thenThrow(NullParamException.class);
-        Mockito.when(orderDTONoValidId.toOrder(baristaRepository, coffeeRepository))
+        Mockito.when(baristaRepository.findById(any()))
+                .thenReturn(Optional.of(specificBarista));
+        Mockito.when(coffeeRepository.findById(any()))
+                .thenReturn(Optional.of(specificCoffee));
+        Mockito.when(mapper.map(orderDTONoValidId))
                 .thenThrow(NoValidIdException.class);
-        Mockito.when(orderDTOCreateNotDef.toOrder(baristaRepository, coffeeRepository))
+        Mockito.when(mapper.map(orderDTOCreateNotDef))
                 .thenThrow(CreatedNotDefinedException.class);
-        Mockito.when(orderDTOBeforeComplete.toOrder(baristaRepository, coffeeRepository))
+        Mockito.when(mapper.map(orderDTOBeforeComplete))
                 .thenThrow(CompletedBeforeCreatedException.class);
-        Mockito.when(orderDTONoValidPrice.toOrder(baristaRepository, coffeeRepository))
+        Mockito.when(mapper.map(orderDTONoValidPrice))
                 .thenThrow(NoValidPriceException.class);
-        Mockito.when(orderDTONotFound.toOrder(baristaRepository, coffeeRepository))
-                .thenReturn(specifiedOrder);
-        Mockito.when(orderRepository.update(specifiedOrder))
+
+        Mockito.when(specifiedOrder.getBarista())
+                .thenReturn(specificBarista);
+        Mockito.when(specificCoffee.getPrice())
+                .thenReturn(102.0);
+        Mockito.when(orderRepository.update(argThat(order -> order.getId().equals(99L))))
                 .thenThrow(OrderNotFoundException.class);
 
         Assertions.assertThrows(NullParamException.class, () -> orderService.update(orderDTONull));
@@ -272,6 +306,7 @@ class OrderServiceTest {
         Assertions.assertThrows(CreatedNotDefinedException.class, () -> orderService.update(orderDTOCreateNotDef));
         Assertions.assertThrows(NoValidPriceException.class, () -> orderService.update(orderDTONoValidPrice));
         Assertions.assertThrows(CompletedBeforeCreatedException.class, () -> orderService.update(orderDTOBeforeComplete));
+
         Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.update(orderDTONotFound));
     }
 
@@ -326,5 +361,40 @@ class OrderServiceTest {
 
         Assertions.assertThrows(NullParamException.class, () -> orderService.completeOrder(null));
         Assertions.assertThrows(NoValidIdException.class, () -> orderService.completeOrder(-1L));
+    }
+
+
+    @Test
+    void findAllByPageTest() {
+        List<Order> specifiedOrderListPage0 = new ArrayList<>(List.of(
+                Mockito.mock(Order.class),
+                Mockito.mock(Order.class),
+                Mockito.mock(Order.class),
+                Mockito.mock(Order.class)
+        ));
+        List<Order> specifiedOrderListPage1 = new ArrayList<>(List.of(
+                Mockito.mock(Order.class),
+                Mockito.mock(Order.class),
+                Mockito.mock(Order.class)
+        ));
+
+        Mockito.when(orderRepository.findAllByPage(0, 4))
+                .thenReturn(specifiedOrderListPage0);
+
+        Mockito.when(orderRepository.findAllByPage(1, 4))
+                .thenReturn(specifiedOrderListPage1);
+
+        List<Order> resultOrderList = orderService.findAllByPage(0, 4);
+        assertEquals(specifiedOrderListPage0, resultOrderList);
+
+        resultOrderList = orderService.findAllByPage(1, 4);
+        assertEquals(specifiedOrderListPage1, resultOrderList);
+    }
+
+    @Test
+    void findAllByPageWrongTest() {
+        Assertions.assertThrows(NoValidPageException.class, () -> orderService.findAllByPage(-1, 1));
+        Assertions.assertThrows(NoValidLimitException.class, () -> orderService.findAllByPage(0, 0));
+        Assertions.assertThrows(NoValidLimitException.class, () -> orderService.findAllByPage(0, -1));
     }
 }

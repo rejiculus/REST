@@ -1,51 +1,76 @@
 package org.example.service.imp;
 
+import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
-import org.example.entity.exception.NoValidIdException;
-import org.example.entity.exception.NoValidNameException;
-import org.example.entity.exception.NoValidTipSizeException;
-import org.example.entity.exception.NullParamException;
+import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
-import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
-import org.example.service.exception.BaristaAlreadyExistException;
-import org.example.service.exception.BaristaNotFoundException;
-import org.example.servlet.dto.BaristaNoRefDTO;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
+import org.example.service.mapper.BaristaDtoToBaristaMapper;
+import org.example.servlet.dto.BaristaCreateDTO;
+import org.example.servlet.dto.BaristaUpdateDTO;
+import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.MountableFile;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
+@Testcontainers
 class BaristaServiceTest {
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine3.20")
+            .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
+                    "/docker-entrypoint-initdb.d/01-schema.sql");
     static AutoCloseable mocks;
-    @Spy
+    @Mock
+    static BaristaDtoToBaristaMapper mapper;
+    @Mock
     BaristaRepository baristaRepository;
-    @Spy
+    @Mock
     OrderRepository orderRepository;
-    @Spy
-    CoffeeRepository coffeeRepository;
 
-    @InjectMocks
     BaristaService baristaService;
+
+    @BeforeAll
+    static void beforeAll() {
+        postgres.start();
+        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
+        DatabaseConfig.setUsername(postgres.getUsername());
+        DatabaseConfig.setPassword(postgres.getPassword());
+    }
 
     @BeforeEach
     public void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
+        baristaService = new BaristaService(baristaRepository, orderRepository);
     }
 
     @AfterAll
     public static void close() throws Exception {
         mocks.close();
+        postgres.stop();
+    }
+
+
+    @Test
+    void constructorsTest() {
+        Connection connection = Mockito.mock(Connection.class);
+        Assertions.assertDoesNotThrow(() -> new BaristaService(baristaRepository, orderRepository));
+        Assertions.assertDoesNotThrow(() -> new BaristaService(connection));
+        Assertions.assertThrows(NullParamException.class, () -> new BaristaService(null, orderRepository));
+        Assertions.assertThrows(NullParamException.class, () -> new BaristaService(baristaRepository, null));
+        Assertions.assertThrows(NullParamException.class, () -> new BaristaService(null));
     }
 
     @Test
@@ -94,17 +119,13 @@ class BaristaServiceTest {
 
     @Test
     void createTest() {
-        Barista specifiedBarista = Mockito.mock(Barista.class);
-        BaristaNoRefDTO specifiedBaristaDTO = Mockito.mock(BaristaNoRefDTO.class);
+        BaristaCreateDTO specifiedBaristaDTO = Mockito.spy(new BaristaCreateDTO("John Doe", 0.1));
 
         Barista expectedBarista = new Barista("John Doe");
         expectedBarista.setId(99L);
 
-        Mockito.when(specifiedBaristaDTO.toBarista(orderRepository))
-                .thenReturn(specifiedBarista);
-        Mockito.when(baristaRepository.create(specifiedBarista))
+        Mockito.when(baristaRepository.create(Mockito.argThat(barista -> barista.getFullName().equals(expectedBarista.getFullName()))))
                 .thenReturn(expectedBarista);
-
 
         Barista resultBarista = baristaService.create(specifiedBaristaDTO);
 
@@ -113,43 +134,24 @@ class BaristaServiceTest {
 
     @Test
     void createWrongTest() {
-        Barista specifiedBarista = Mockito.mock(Barista.class);
-        BaristaNoRefDTO baristaDTONull = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidId = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidName = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidTip = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTOExist = Mockito.mock(BaristaNoRefDTO.class);
 
+        BaristaCreateDTO baristaDTONull = Mockito.spy(new BaristaCreateDTO(null, 0.1));
+        BaristaCreateDTO baristaDTONoValidName = Mockito.spy(new BaristaCreateDTO("", 0.1));
+        BaristaCreateDTO baristaDTONoValidTip = Mockito.spy(new BaristaCreateDTO("John Doe", -0.1));
 
-        Mockito.when(baristaDTONull.toBarista(orderRepository))
-                .thenThrow(NullParamException.class);
-        Mockito.when(baristaDTONoValidId.toBarista(orderRepository))
-                .thenThrow(NoValidIdException.class);
-        Mockito.when(baristaDTONoValidName.toBarista(orderRepository))
-                .thenThrow(NoValidNameException.class);
-        Mockito.when(baristaDTONoValidTip.toBarista(orderRepository))
-                .thenThrow(NoValidTipSizeException.class);
-        Mockito.when(baristaDTOExist.toBarista(orderRepository))
-                .thenReturn(specifiedBarista);
-        Mockito.when(baristaRepository.create(specifiedBarista))
-                .thenThrow(new BaristaAlreadyExistException(0L));
 
         Assertions.assertThrows(NullParamException.class, () -> baristaService.create(baristaDTONull));
         Assertions.assertThrows(NullParamException.class, () -> baristaService.create(null));
-        Assertions.assertThrows(NoValidIdException.class, () -> baristaService.create(baristaDTONoValidId));
         Assertions.assertThrows(NoValidNameException.class, () -> baristaService.create(baristaDTONoValidName));
         Assertions.assertThrows(NoValidTipSizeException.class, () -> baristaService.create(baristaDTONoValidTip));
-        Assertions.assertThrows(BaristaAlreadyExistException.class, () -> baristaService.create(baristaDTOExist));
     }
 
     @Test
     void updateTest() {
         Barista specificBarista = Mockito.mock(Barista.class);
-        BaristaNoRefDTO baristaDTO = Mockito.mock(BaristaNoRefDTO.class);
+        BaristaUpdateDTO baristaDTO = Mockito.spy(new BaristaUpdateDTO(0L, "John Doe", 0.1, List.of()));
 
-        Mockito.when(baristaDTO.toBarista(orderRepository))
-                .thenReturn(specificBarista);
-        Mockito.when(baristaRepository.update(specificBarista))
+        Mockito.when(baristaRepository.update(Mockito.argThat(barista -> barista.getFullName().equals(baristaDTO.fullName()))))
                 .thenReturn(specificBarista);
 
         Barista resultBarista = baristaService.update(baristaDTO);
@@ -159,25 +161,13 @@ class BaristaServiceTest {
 
     @Test
     void updateWrongTest() {
-        Barista specifiedBarista = Mockito.mock(Barista.class);
-        BaristaNoRefDTO baristaDTONull = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidId = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidName = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONoValidTip = Mockito.mock(BaristaNoRefDTO.class);
-        BaristaNoRefDTO baristaDTONotFound = Mockito.mock(BaristaNoRefDTO.class);
+        BaristaUpdateDTO baristaDTONull = new BaristaUpdateDTO(null, "John Doe", 0.1, List.of());
+        BaristaUpdateDTO baristaDTONoValidId = new BaristaUpdateDTO(-1L, "John Doe", 0.1, List.of());
+        BaristaUpdateDTO baristaDTONoValidName = new BaristaUpdateDTO(0L, "", 0.1, List.of());
+        BaristaUpdateDTO baristaDTONoValidTip = new BaristaUpdateDTO(0L, "John Doe", -0.1, List.of());
+        BaristaUpdateDTO baristaDTONotFound = new BaristaUpdateDTO(0L, "John Doe", 0.1, List.of());
 
-
-        Mockito.when(baristaDTONull.toBarista(orderRepository))
-                .thenThrow(NullParamException.class);
-        Mockito.when(baristaDTONoValidId.toBarista(orderRepository))
-                .thenThrow(NoValidIdException.class);
-        Mockito.when(baristaDTONoValidName.toBarista(orderRepository))
-                .thenThrow(NoValidNameException.class);
-        Mockito.when(baristaDTONoValidTip.toBarista(orderRepository))
-                .thenThrow(NoValidTipSizeException.class);
-        Mockito.when(baristaDTONotFound.toBarista(orderRepository))
-                .thenReturn(specifiedBarista);
-        Mockito.when(baristaRepository.update(specifiedBarista))
+        Mockito.when(baristaRepository.update(Mockito.argThat(barista -> barista.getId().equals(0L))))
                 .thenThrow(BaristaNotFoundException.class);
 
         Assertions.assertThrows(NullParamException.class, () -> baristaService.update(baristaDTONull));
@@ -200,8 +190,44 @@ class BaristaServiceTest {
 
     @Test
     void deleteWrongTest() {
-        //todo check id not found exception
+        baristaService.delete(0L);
+        Mockito.verify(baristaRepository,Mockito.times(1)).delete(0L);
         Assertions.assertThrows(NullParamException.class, () -> baristaService.delete(null));
         Assertions.assertThrows(NoValidIdException.class, () -> baristaService.delete(-1L));
+    }
+
+
+    @Test
+    void findAllByPageTest() {
+        List<Barista> specifiedBaristaListPage0 = new ArrayList<>(List.of(
+                Mockito.mock(Barista.class),
+                Mockito.mock(Barista.class),
+                Mockito.mock(Barista.class),
+                Mockito.mock(Barista.class)
+        ));
+        List<Barista> specifiedBaristaListPage1 = new ArrayList<>(List.of(
+                Mockito.mock(Barista.class),
+                Mockito.mock(Barista.class),
+                Mockito.mock(Barista.class)
+        ));
+
+        Mockito.when(baristaRepository.findAllByPage(0, 4))
+                .thenReturn(specifiedBaristaListPage0);
+
+        Mockito.when(baristaRepository.findAllByPage(1, 4))
+                .thenReturn(specifiedBaristaListPage1);
+
+        List<Barista> resultBaristaList = baristaService.findAllByPage(0, 4);
+        assertEquals(specifiedBaristaListPage0, resultBaristaList);
+
+        resultBaristaList = baristaService.findAllByPage(1, 4);
+        assertEquals(specifiedBaristaListPage1, resultBaristaList);
+    }
+
+    @Test
+    void findAllByPageWrongTest() {
+        Assertions.assertThrows(NoValidPageException.class, () -> baristaService.findAllByPage(-1, 1));
+        Assertions.assertThrows(NoValidLimitException.class, () -> baristaService.findAllByPage(0, 0));
+        Assertions.assertThrows(NoValidLimitException.class, () -> baristaService.findAllByPage(0, -1));
     }
 }
