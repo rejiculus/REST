@@ -14,6 +14,7 @@ import org.example.repository.imp.OrderRepositoryImp;
 import org.example.service.dto.IOrderCreateDTO;
 import org.example.service.dto.IOrderUpdateDTO;
 import org.example.service.exception.OrderAlreadyCompletedException;
+import org.example.service.exception.OrderHasReferencesException;
 import org.example.service.mapper.OrderDtoToOrderMapper;
 
 import java.sql.Connection;
@@ -117,6 +118,9 @@ public class OrderService {
             throw new NullParamException();
         if (id < 0)
             throw new NoValidIdException(id);
+
+        if(!coffeeRepository.findByOrderId(id).isEmpty())
+            throw new OrderHasReferencesException(id);
 
         this.orderRepository.delete(id);
 

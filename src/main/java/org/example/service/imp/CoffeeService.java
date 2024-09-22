@@ -11,6 +11,7 @@ import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
 import org.example.service.dto.ICoffeeCreateDTO;
 import org.example.service.dto.ICoffeeUpdateDTO;
+import org.example.service.exception.CoffeeHasReferenceException;
 import org.example.service.mapper.CoffeeDtoToCoffeeMapper;
 
 import java.sql.Connection;
@@ -94,6 +95,9 @@ public class CoffeeService {
             throw new NullParamException();
         if (id < 0)
             throw new NoValidIdException(id);
+
+        if(!orderRepository.findByCoffeeId(id).isEmpty())
+            throw new CoffeeHasReferenceException(id);
 
         this.coffeeRepository.delete(id);
 
