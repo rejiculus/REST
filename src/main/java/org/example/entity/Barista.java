@@ -9,21 +9,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Barista entity. Contains full name, tip size and order list.
+ * Full name is required. Others fields are initialized: tipSize = 0.1, orderList = empty list, id = -1;
+ */
 public class Barista {
     private Long id;
     private String fullName;
-    private List<Order> orderList;
     private Double tipSize;
+    private List<Order> orderList;
 
     /**
-     * @param id
-     * @param fullName
-     * @param orderList
-     * @param tipSize
-     * @throws NullParamException
-     * @throws NoValidIdException
-     * @throws NoValidNameException
-     * @throws NoValidTipSizeException
+     * All field constructor.
+     *
+     * @param id        unequal entity identifier. Must be more not less than zero.
+     * @param fullName  barista's full name. Can't be empty or null.
+     * @param orderList list of orders prepared by the barista. Can't be null.
+     * @param tipSize   tip that barista take per order, in percent. Can't be less than zero, NaN, infinite or null.
+     * @throws NullParamException      thrown when one of param equals null.
+     * @throws NoValidIdException      thrown when id less than zero.
+     * @throws NoValidNameException    thrown when name is empty.
+     * @throws NoValidTipSizeException thrown when tip size is NaN, Infinite or less than zero.
      */
     public Barista(Long id, String fullName, List<Order> orderList, Double tipSize) {
         if (id == null || fullName == null || orderList == null || tipSize == null)
@@ -43,11 +49,37 @@ public class Barista {
     }
 
     /**
-     * @param fullName
-     * @param tipSize
-     * @throws NullParamException
-     * @throws NoValidNameException
-     * @throws NoValidTipSizeException
+     * Without id constructor.
+     *
+     * @param fullName  barista's full name. Can't be empty or null.
+     * @param orderList list of orders prepared by the barista. Can't be null.
+     * @param tipSize   tip that barista take per order, in percent. Can't be less than zero, NaN, infinite or null.
+     * @throws NullParamException      thrown when one of param equals null.
+     * @throws NoValidNameException    thrown when name is empty.
+     * @throws NoValidTipSizeException thrown when tip size is NaN, Infinite or less than zero.
+     */
+    public Barista(String fullName, List<Order> orderList, Double tipSize) {
+        if (fullName == null || orderList == null || tipSize == null)
+            throw new NullParamException();
+        if (fullName.isEmpty())
+            throw new NoValidNameException();
+        if (tipSize.isNaN() || tipSize.isInfinite() || tipSize < 0.0)
+            throw new NoValidTipSizeException(tipSize);
+
+        this.id = -1L;
+        this.fullName = fullName;
+        this.orderList = new ArrayList<>(orderList);
+        this.tipSize = tipSize;
+    }
+
+    /**
+     * Constructor with full name and tip size params
+     *
+     * @param fullName barista's full name. Can't be empty or null.
+     * @param tipSize  tip that barista take per order, in percent. Can't be less than zero, NaN, infinite or null.
+     * @throws NullParamException      thrown when one of param equals null.
+     * @throws NoValidNameException    thrown when name is empty.
+     * @throws NoValidTipSizeException thrown when tip size is NaN, Infinite or less than zero.
      */
     public Barista(String fullName, Double tipSize) {
         if (fullName == null || tipSize == null)
@@ -57,15 +89,18 @@ public class Barista {
         if (tipSize.isNaN() || tipSize.isInfinite() || tipSize < 0.0)
             throw new NoValidTipSizeException(tipSize);
 
+        this.id = -1L;
         this.fullName = fullName;
         this.tipSize = tipSize;
         this.orderList = new ArrayList<>();
     }
 
     /**
-     * @param fullName
-     * @throws NullParamException
-     * @throws NoValidNameException
+     * Minimum necessary Constructor
+     *
+     * @param fullName barista's full name. Can't be empty or null.
+     * @throws NullParamException   thrown when one of param equals null.
+     * @throws NoValidNameException thrown when name is empty.
      */
     public Barista(String fullName) {
         if (fullName == null)
@@ -73,16 +108,19 @@ public class Barista {
         if (fullName.isEmpty())
             throw new NoValidNameException();
 
+        this.id = -1L;
         this.fullName = fullName;
         this.orderList = new ArrayList<>();
         this.tipSize = 0.1;
     }
 
     /**
-     * @param fullName
-     * @param orderList
-     * @throws NullParamException
-     * @throws NoValidNameException
+     * Constructor with full name and order list params
+     *
+     * @param fullName  barista's full name. Can't be empty or null.
+     * @param orderList list of orders prepared by the barista. Can't be null.
+     * @throws NullParamException   thrown when one of param equals null.
+     * @throws NoValidNameException thrown when name is empty.
      */
     public Barista(String fullName, List<Order> orderList) {
         if (fullName == null || orderList == null)
@@ -90,19 +128,30 @@ public class Barista {
         if (fullName.isEmpty())
             throw new NoValidNameException();
 
+        this.id = -1L;
         this.fullName = fullName;
         this.orderList = orderList;
-        tipSize = 0.1;
+        this.tipSize = 0.1;
     }
 
+    /**
+     * Get unequal identifier.
+     *
+     * @return unequal identifier.
+     * @throws NoValidIdException thrown if id is not defined.
+     */
     public Long getId() {
+        if (id.equals(-1L))
+            throw new NoValidIdException();
         return id;
     }
 
     /**
-     * @param id
-     * @throws NullParamException
-     * @throws NoValidIdException
+     * Set unequal identifier.
+     *
+     * @param id unequal identifier. Can't be less than zero.
+     * @throws NullParamException thrown when one of param equals null.
+     * @throws NoValidIdException thrown when id less than zero.
      */
     public void setId(Long id) {
         if (id == null)
@@ -113,14 +162,21 @@ public class Barista {
         this.id = id;
     }
 
+    /**
+     * Get full name of barista.
+     *
+     * @return full name.
+     */
     public String getFullName() {
         return fullName;
     }
 
     /**
-     * @param fullName
-     * @throws NullParamException
-     * @throws NoValidNameException
+     * Set barista's full name.
+     *
+     * @param fullName barista's full name.
+     * @throws NullParamException   thrown when one of param equals null.
+     * @throws NoValidNameException thrown when name is empty.
      */
     public void setFullName(String fullName) {
         if (fullName == null)
@@ -131,13 +187,20 @@ public class Barista {
         this.fullName = fullName;
     }
 
+    /**
+     * Get order's that prepared by this barista.
+     *
+     * @return order list.
+     */
     public List<Order> getOrderList() {
         return orderList;
     }
 
     /**
-     * @param orderList
-     * @throws NullParamException
+     * Set order list. List of orders that prepared by this barista.
+     *
+     * @param orderList that prepared by this barista.
+     * @throws NullParamException thrown when one of param equals null.
      */
     public void setOrderList(List<Order> orderList) {
         if (orderList == null)
@@ -146,14 +209,21 @@ public class Barista {
         this.orderList = new ArrayList<>(orderList);
     }
 
+    /**
+     * Get tip that barista take per order, in percent. Can't be less than zero, NaN, infinite or null.
+     *
+     * @return tip size in percent.
+     */
     public Double getTipSize() {
         return tipSize;
     }
 
     /**
-     * @param tipSize
-     * @throws NullParamException
-     * @throws NoValidTipSizeException
+     * Set tip that barista take per order, in percent. Can't be less than zero, NaN, infinite or null.
+     *
+     * @param tipSize tip that barista take per order, in percent.
+     * @throws NullParamException      thrown when one of param equals null.
+     * @throws NoValidTipSizeException thrown when tip size is NaN, Infinite or less than zero.
      */
     public void setTipSize(Double tipSize) {
         if (tipSize == null)
