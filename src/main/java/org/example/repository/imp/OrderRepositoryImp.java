@@ -1,6 +1,5 @@
 package org.example.repository.imp;
 
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Order;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;

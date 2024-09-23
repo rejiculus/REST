@@ -13,6 +13,7 @@ public class NoValidIdException extends RuntimeException {
 
     /**
      * Thrown when trying to specify wrong id.
+     *
      * @param id specified id.
      */
     public NoValidIdException(Long id) {

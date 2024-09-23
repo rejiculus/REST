@@ -28,8 +28,9 @@ public class BaristaService implements IBaristaService {
 
     /**
      * Constructor based on repositories. Create mapper by order repository.
+     *
      * @param baristaRepository repository to interact with barista schema in db.
-     * @param orderRepository repository to interact with order schema in db.
+     * @param orderRepository   repository to interact with order schema in db.
      * @throws NullParamException when some of params is null.
      */
     public BaristaService(BaristaRepository baristaRepository, OrderRepository orderRepository) {
@@ -44,6 +45,7 @@ public class BaristaService implements IBaristaService {
     /**
      * Constructor baser on connection. Create baristaRepository and orderRepository by connection.
      * Create mapper by orderRepository.
+     *
      * @param connection connection with database.
      * @throws NullParamException when connection param is null.
      */
@@ -59,10 +61,11 @@ public class BaristaService implements IBaristaService {
 
     /**
      * Creating barista by IBaristaCreateDTO.
+     *
      * @param baristaDTO object with IBaristaCreateDTO type.
      * @return Barista with specified id.
-     * @throws NullParamException when baristaDTO is null, or in mapper when some fields in baristaDTO is null.
-     * @throws NoValidNameException form mapper, when baristaDTO's fullName is empty.
+     * @throws NullParamException      when baristaDTO is null, or in mapper when some fields in baristaDTO is null.
+     * @throws NoValidNameException    form mapper, when baristaDTO's fullName is empty.
      * @throws NoValidTipSizeException from mapper, when baristaDTO's tipSize is NaN, Infinite or less than zero.
      */
     @Override
@@ -78,14 +81,15 @@ public class BaristaService implements IBaristaService {
      * Updating barista by IBaristaUpdateDTO.
      * Set default barista to orders that already not contains in orderIdList.
      * Adding reference with orders that already contains in orderIdList.
+     *
      * @param baristaDTO object with IBaristaUpdateDTO type.
      * @return Barista object.
-     * @throws NullParamException when baristaDTO is null, or in mapper when some fields in baristaDTO is null.
-     * @throws NoValidIdException from mapper, when baristaDTO's id is less than zero.
-     * @throws NoValidNameException form mapper, when baristaDTO's fullName is empty.
-     * @throws NoValidTipSizeException from mapper, when baristaDTO's tipSize is NaN, Infinite or less than zero.
+     * @throws NullParamException       when baristaDTO is null, or in mapper when some fields in baristaDTO is null.
+     * @throws NoValidIdException       from mapper, when baristaDTO's id is less than zero.
+     * @throws NoValidNameException     form mapper, when baristaDTO's fullName is empty.
+     * @throws NoValidTipSizeException  from mapper, when baristaDTO's tipSize is NaN, Infinite or less than zero.
      * @throws BaristaNotFoundException from baristaRepository, when id is not found in db.
-     * @throws OrderNotFoundException from orderRepository, when order form baristaDTO's orderIdList is not found in db.
+     * @throws OrderNotFoundException   from orderRepository, when order form baristaDTO's orderIdList is not found in db.
      */
     @Override
     public Barista update(IBaristaUpdateDTO baristaDTO) {
@@ -116,9 +120,10 @@ public class BaristaService implements IBaristaService {
     /**
      * Delete barista from db.
      * Updating couped orders, setting default barista.
+     *
      * @param id deleting barista.
-     * @throws NullParamException when id is null.
-     * @throws NoValidIdException when id is less than zero.
+     * @throws NullParamException       when id is null.
+     * @throws NoValidIdException       when id is less than zero.
      * @throws BaristaNotFoundException when barista with this id is not found in db.
      */
     @Override
@@ -138,10 +143,11 @@ public class BaristaService implements IBaristaService {
 
     /**
      * Found barista by id.
+     *
      * @param id barista's id.
      * @return Barista's object.
-     * @throws NullParamException when id is null.
-     * @throws NoValidIdException when id is less than zero.
+     * @throws NullParamException       when id is null.
+     * @throws NoValidIdException       when id is less than zero.
      * @throws BaristaNotFoundException when barista with this id is not found in db.
      */
     @Override
@@ -161,6 +167,7 @@ public class BaristaService implements IBaristaService {
 
     /**
      * Found all barista.
+     *
      * @return list of barista's objects
      */
     @Override
@@ -174,10 +181,11 @@ public class BaristaService implements IBaristaService {
 
     /**
      * Found all barista, grouped by page and limited.
-     * @param page number of page. Can't be less than zero.
+     *
+     * @param page  number of page. Can't be less than zero.
      * @param limit number of maximum objects in list.
      * @return list of barista's objects
-     * @throws NoValidPageException when page is less than zero.
+     * @throws NoValidPageException  when page is less than zero.
      * @throws NoValidLimitException when limit is less than one.
      */
     @Override

@@ -114,7 +114,7 @@ public class Order {
      * @throws NullParamException thrown when one of param equals null.
      */
     public Order(Barista barista, List<Coffee> coffeeList, LocalDateTime created) {
-        if (barista == null || coffeeList == null || created==null)
+        if (barista == null || coffeeList == null || created == null)
             throw new NullParamException();
 
         this.id = -1L;

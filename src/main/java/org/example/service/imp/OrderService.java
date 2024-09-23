@@ -123,7 +123,7 @@ public class OrderService implements IOrderService {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        if(!coffeeRepository.findByOrderId(id).isEmpty())
+        if (!coffeeRepository.findByOrderId(id).isEmpty())
             throw new OrderHasReferencesException(id);
 
         this.orderRepository.delete(id);

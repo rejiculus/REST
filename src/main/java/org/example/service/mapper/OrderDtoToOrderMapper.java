@@ -3,13 +3,7 @@ package org.example.service.mapper;
 import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
-import org.example.entity.exception.BaristaNotFoundException;
-import org.example.entity.exception.CoffeeNotFoundException;
-import org.example.entity.exception.CreatedNotDefinedException;
-import org.example.entity.exception.CompletedBeforeCreatedException;
-import org.example.entity.exception.NoValidPriceException;
-import org.example.entity.exception.NullParamException;
-import org.example.entity.exception.NoValidIdException;
+import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.service.dto.IOrderCreateDTO;
@@ -35,11 +29,12 @@ public class OrderDtoToOrderMapper {
 
     /**
      * Mapping IOrderCreateDTO to Order.
+     *
      * @param orderDTO object with IOrderCreateDTO type.
      * @return Order object, with not specified id!
-     * @throws NullParamException when orderDTO or fields of orderDTO is null.
+     * @throws NullParamException       when orderDTO or fields of orderDTO is null.
      * @throws BaristaNotFoundException when barista from orderDTO is not found in db.
-     * @throws CoffeeNotFoundException when coffee from orderDTO is not found in db.
+     * @throws CoffeeNotFoundException  when coffee from orderDTO is not found in db.
      */
     public Order map(IOrderCreateDTO orderDTO) {
         if (orderDTO == null)
@@ -59,15 +54,16 @@ public class OrderDtoToOrderMapper {
 
     /**
      * Mapping IOrderUpdateDTO to Order.
+     *
      * @param orderDTO object with IOrderCreateDTO type.
      * @return Order object.
-     * @throws NullParamException when orderDTO or fields of orderDTO is null.
-     * @throws BaristaNotFoundException when barista from orderDTO is not found in db.
-     * @throws CoffeeNotFoundException when coffee from orderDTO is not found in db.
-     * @throws NoValidIdException from order entity, when id in orderDTO is less than zero.
-     * @throws CreatedNotDefinedException from order entity, when complete time is specified by created time is not.
+     * @throws NullParamException              when orderDTO or fields of orderDTO is null.
+     * @throws BaristaNotFoundException        when barista from orderDTO is not found in db.
+     * @throws CoffeeNotFoundException         when coffee from orderDTO is not found in db.
+     * @throws NoValidIdException              from order entity, when id in orderDTO is less than zero.
+     * @throws CreatedNotDefinedException      from order entity, when complete time is specified by created time is not.
      * @throws CompletedBeforeCreatedException from order entity, when completed time is before than create time.
-     * @throws NoValidPriceException from order entity, when price is NaN, Infinite or less than zero.
+     * @throws NoValidPriceException           from order entity, when price is NaN, Infinite or less than zero.
      */
     public Order map(IOrderUpdateDTO orderDTO) {
         if (orderDTO == null)

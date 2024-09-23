@@ -1,11 +1,7 @@
 package org.example.service.mapper;
 
 import org.example.entity.Barista;
-import org.example.entity.exception.NoValidNameException;
-import org.example.entity.exception.NoValidTipSizeException;
-import org.example.entity.exception.NullParamException;
-import org.example.entity.exception.OrderNotFoundException;
-import org.example.entity.exception.NoValidIdException;
+import org.example.entity.exception.*;
 import org.example.repository.OrderRepository;
 import org.example.service.dto.IBaristaCreateDTO;
 import org.example.service.dto.IBaristaUpdateDTO;
@@ -27,10 +23,11 @@ public class BaristaDtoToBaristaMapper {
 
     /**
      * Mapping IBaristaCreateDTO to Barista.
+     *
      * @param baristaDTO object with IBaristaCreateDTO type.
      * @return Barista object.
-     * @throws NullParamException thrown when baristaDTO is null, or fields in baristaDTO is null.
-     * @throws NoValidNameException thrown, from barista entity, when fullName in baristaDTO is empty.
+     * @throws NullParamException      thrown when baristaDTO is null, or fields in baristaDTO is null.
+     * @throws NoValidNameException    thrown, from barista entity, when fullName in baristaDTO is empty.
      * @throws NoValidTipSizeException thrown, from barista entity, when tipSize in baristaDTO is NaN, Infinite or less than zero.
      */
     public Barista map(IBaristaCreateDTO baristaDTO) {
@@ -47,12 +44,13 @@ public class BaristaDtoToBaristaMapper {
 
     /**
      * Mapping IBaristaUpdateDTO to Barista
+     *
      * @param baristaDTO object with IBaristaUpdateDTO type.
      * @return Barista object.
-     * @throws NullParamException thrown when baristaDTO is null, or fields in baristaDTO is null.
-     * @throws NoValidIdException thrown, from barista entity, when id in baristaDTO is less than zero.
-     * @throws NoValidNameException thrown, from barista entity, when fullName in baristaDTO is empty.
-     * @throws OrderNotFoundException thrown when order from baristaDTO orderIdList is not found in db.
+     * @throws NullParamException      thrown when baristaDTO is null, or fields in baristaDTO is null.
+     * @throws NoValidIdException      thrown, from barista entity, when id in baristaDTO is less than zero.
+     * @throws NoValidNameException    thrown, from barista entity, when fullName in baristaDTO is empty.
+     * @throws OrderNotFoundException  thrown when order from baristaDTO orderIdList is not found in db.
      * @throws NoValidTipSizeException thrown, from barista entity, when tipSize in baristaDTO is NaN, Infinite or less than zero.
      */
     public Barista map(IBaristaUpdateDTO baristaDTO) {

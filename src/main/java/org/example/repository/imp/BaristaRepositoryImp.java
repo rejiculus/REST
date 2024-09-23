@@ -1,6 +1,5 @@
 package org.example.repository.imp;
 
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Barista;
 import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NoValidIdException;
@@ -19,7 +18,6 @@ import java.util.Optional;
 public class BaristaRepositoryImp implements BaristaRepository {
     private Connection connection;
     private BaristaMapper mapper;
-
 
 
     public BaristaRepositoryImp(Connection connection) {

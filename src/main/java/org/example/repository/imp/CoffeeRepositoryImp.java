@@ -1,7 +1,6 @@
 package org.example.repository.imp;
 
 import org.example.db.ConnectionManager;
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Coffee;
 import org.example.entity.exception.CoffeeNotFoundException;
 import org.example.entity.exception.NoValidIdException;
