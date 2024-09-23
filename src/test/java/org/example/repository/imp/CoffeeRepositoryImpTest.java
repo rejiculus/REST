@@ -2,7 +2,6 @@ package org.example.repository.imp;
 
 import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
@@ -46,10 +45,8 @@ class CoffeeRepositoryImpTest {
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
-        ConnectionManager connectionManager = new ConnectionManagerImp();
+
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         Connection connection = connectionManager.getConnection();
         coffeeRepository = new CoffeeRepositoryImp(connection);
         orderRepository = new OrderRepositoryImp(connection);
@@ -63,7 +60,7 @@ class CoffeeRepositoryImpTest {
 
     @Test
     void constructorsTest() {
-        ConnectionManager connectionManager = Mockito.spy(new ConnectionManagerImp());
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         CoffeeMapper mapper = Mockito.spy(new CoffeeMapper());
         Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connectionManager, mapper));
         Assertions.assertThrows(NullParamException.class, () -> new CoffeeRepositoryImp(connectionManager, null));

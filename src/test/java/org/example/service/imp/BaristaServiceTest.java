@@ -1,6 +1,5 @@
 package org.example.service.imp;
 
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
@@ -45,9 +44,6 @@ class BaristaServiceTest {
     @BeforeAll
     static void beforeAll() {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
     }
 
     @BeforeEach

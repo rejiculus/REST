@@ -1,6 +1,5 @@
 package org.example.service.imp;
 
-import org.example.db.DatabaseConfig;
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
 import org.example.repository.CoffeeRepository;
@@ -43,9 +42,6 @@ class CoffeeServiceTest {
     @BeforeAll
     static void beforeAll() {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
     }
 
     @BeforeEach

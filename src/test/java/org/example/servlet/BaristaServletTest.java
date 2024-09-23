@@ -5,8 +5,8 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.repository.BaristaRepository;
 import org.example.repository.imp.BaristaRepositoryImp;
@@ -39,20 +39,18 @@ class BaristaServletTest {
             .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 
-    private static Connection connection;
-    private BaristaServlet baristaServlet;
-    private BaristaRepository baristaRepository;
-    private ServletConfig servletConfig;
-    private ServletContext servletContext;
+    private static BaristaServlet baristaServlet;
+    private static BaristaRepository baristaRepository;
 
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
 
-        connection = new ConnectionManagerImp().getConnection();
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        baristaServlet = new BaristaServlet(connectionManager);
+
+        Connection connection = connectionManager.getConnection();
+        baristaRepository = new BaristaRepositoryImp(connection);
     }
 
     @AfterAll
@@ -62,14 +60,12 @@ class BaristaServletTest {
 
 
     @BeforeEach
-    void setUp() throws SQLException, ServletException {
-        servletConfig = mock(ServletConfig.class);
-        baristaServlet = new BaristaServlet();
+    void setUp() throws ServletException {
+        ServletConfig servletConfig = mock(ServletConfig.class);
         baristaServlet.init(servletConfig);
 
-        servletContext = mock(ServletContext.class);
+        ServletContext servletContext = mock(ServletContext.class);
         when(servletConfig.getServletContext()).thenReturn(servletContext);
-        baristaRepository = new BaristaRepositoryImp(connection);
     }
 
     @Test
@@ -239,7 +235,7 @@ class BaristaServletTest {
         when(request.getReader())
                 .thenReturn(bufferedReader);
         when(request.getPathInfo())
-                .thenReturn("/"+barista.getId());
+                .thenReturn("/" + barista.getId());
         when(response.getWriter())
                 .thenReturn(writer);
 

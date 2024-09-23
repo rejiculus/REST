@@ -1,7 +1,7 @@
 package org.example.repository;
 
+import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
@@ -37,12 +37,9 @@ class ManyToManyRepositoryTest {
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
 
-        Connection connection = new ConnectionManagerImp().getConnection();
-
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        Connection connection = connectionManager.getConnection();
 
         baristaRepository = new BaristaRepositoryImp(connection);
         orderRepository = new OrderRepositoryImp(connection);

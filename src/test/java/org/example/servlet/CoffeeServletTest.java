@@ -5,8 +5,8 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Coffee;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.imp.CoffeeRepositoryImp;
@@ -39,20 +39,18 @@ class CoffeeServletTest {
             .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 
-    private static Connection connection;
-    private CoffeeServlet coffeeServlet;
-    private CoffeeRepository coffeeRepository;
-    private ServletConfig servletConfig;
-    private ServletContext servletContext;
+    private static CoffeeServlet coffeeServlet;
+    private static CoffeeRepository coffeeRepository;
 
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
 
-        connection = new ConnectionManagerImp().getConnection();
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        Connection connection = connectionManager.getConnection();
+
+        coffeeServlet = new CoffeeServlet(connectionManager);
+        coffeeRepository = new CoffeeRepositoryImp(connection);
     }
 
     @AfterAll
@@ -62,14 +60,12 @@ class CoffeeServletTest {
 
 
     @BeforeEach
-    void setUp() throws SQLException, ServletException {
-        servletConfig = mock(ServletConfig.class);
-        coffeeServlet = new CoffeeServlet();
+    void setUp() throws ServletException {
+        ServletConfig servletConfig = mock(ServletConfig.class);
         coffeeServlet.init(servletConfig);
 
-        servletContext = mock(ServletContext.class);
+        ServletContext servletContext = mock(ServletContext.class);
         when(servletConfig.getServletContext()).thenReturn(servletContext);
-        coffeeRepository = new CoffeeRepositoryImp(connection);
     }
 
     @Test

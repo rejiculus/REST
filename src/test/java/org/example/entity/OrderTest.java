@@ -3,6 +3,7 @@ package org.example.entity;
 import org.example.entity.exception.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -74,8 +75,10 @@ class OrderTest {
                 new Coffee("Frapuchino", 999.9),
                 new Coffee("Frapuchino bez cofe", 999.9)
         ));
+        LocalDateTime specifiedDateTime = LocalDateTime.now();
 
         Order order = new Order(expectedBarista, expectedCoffeeList);
+        Order order2 = new Order(expectedBarista, expectedCoffeeList, specifiedDateTime);
 
         assertThrows(NoValidIdException.class, () -> order.getId());
         assertEquals(expectedBarista, order.getBarista());
@@ -83,16 +86,28 @@ class OrderTest {
         assertNull(order.getCreated());
         assertNull(order.getCompleted());
         assertEquals(0.0, order.getPrice());
+
+        assertThrows(NoValidIdException.class, () -> order2.getId());
+        assertEquals(expectedBarista, order2.getBarista());
+        assertEquals(expectedCoffeeList, order2.getCoffeeList());
+        assertEquals(specifiedDateTime, order2.getCreated());
+        assertNull(order2.getCompleted());
+        assertEquals(0.0, order2.getPrice());
     }
 
     @Test
     void constructorWrongTest() {
-
+        Barista barista = Mockito.mock(Barista.class);
+        List<Coffee> coffeeList = List.of();
         List<Coffee> inputCoffeeList = new ArrayList<>();
         Barista inputBarista = new Barista("John Doe");
 
         Assertions.assertThrows(NullParamException.class, () -> new Order(99L, null, inputCoffeeList, LocalDateTime.MIN, LocalDateTime.MAX, 9.0));
         Assertions.assertThrows(NullParamException.class, () -> new Order(99L, inputBarista, null, LocalDateTime.MIN, LocalDateTime.MAX, 9.0));
+        Assertions.assertThrows(NullParamException.class, () -> new Order(null, coffeeList, LocalDateTime.MAX));
+        Assertions.assertThrows(NullParamException.class, () -> new Order(barista, null, LocalDateTime.MAX));
+        Assertions.assertThrows(NullParamException.class, () -> new Order(barista, coffeeList, null));
+
     }
 
 

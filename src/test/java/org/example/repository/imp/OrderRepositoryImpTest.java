@@ -2,7 +2,6 @@ package org.example.repository.imp;
 
 import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
@@ -47,11 +46,8 @@ class OrderRepositoryImpTest {
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
 
-        connectionManager = Mockito.spy(new ConnectionManagerImp());
+        connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         Connection connection = connectionManager.getConnection();
 
         mapper = Mockito.spy(new OrderMapper(new BaristaRepositoryImp(connection)));

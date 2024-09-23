@@ -2,7 +2,6 @@ package org.example.repository.imp;
 
 import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.db.DatabaseConfig;
 import org.example.entity.Barista;
 import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NoValidIdException;
@@ -19,6 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +38,10 @@ class BaristaRepositoryImpTest {
     @BeforeAll
     static void beforeAll() throws SQLException {
         postgres.start();
-        DatabaseConfig.setDbUrl(postgres.getJdbcUrl());
-        DatabaseConfig.setUsername(postgres.getUsername());
-        DatabaseConfig.setPassword(postgres.getPassword());
 
-        ConnectionManager connectionManager = new ConnectionManagerImp();
-        baristaRepository = new BaristaRepositoryImp(connectionManager.getConnection());
+        ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        Connection connection = connectionManager.getConnection();
+        baristaRepository = new BaristaRepositoryImp(connection);
     }
 
     @AfterAll
@@ -150,7 +148,7 @@ class BaristaRepositoryImpTest {
         List<Barista> baristaList = baristaRepository.findAll();
 
         assertNotNull(baristaList);
-        assertTrue(baristaList.size()>=3);
+        assertTrue(baristaList.size() >= 3);
     }
 
     @Test
