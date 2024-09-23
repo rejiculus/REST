@@ -18,12 +18,22 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service to processing coffee entity.
+ */
 public class CoffeeService {
     private final CoffeeRepository coffeeRepository;
     private final OrderRepository orderRepository;
 
     private final CoffeeDtoToCoffeeMapper mapper;
 
+    /**
+     * Constructor based on repositories.
+     * Create mapper by orderRepository.
+     * @param orderRepository repository to interact with orders in db.
+     * @param coffeeRepository repository to interact with coffee in db.
+     * @throws NullParamException when orderRepository of coffeeRepository is null.
+     */
     public CoffeeService(OrderRepository orderRepository, CoffeeRepository coffeeRepository) {
         if (orderRepository == null || coffeeRepository == null)
             throw new NullParamException();
@@ -33,6 +43,13 @@ public class CoffeeService {
         this.mapper = new CoffeeDtoToCoffeeMapper(orderRepository);
     }
 
+    /**
+     * Constructor based on connection.
+     * Create orderRepository and coffeeRepository by connection.
+     * Create mapper by orderRepository.
+     * @param connection specified connection with db.
+     * @throws NullParamException when connection is null.
+     */
     public CoffeeService(Connection connection) {
         if (connection == null)
             throw new NullParamException();
@@ -43,12 +60,12 @@ public class CoffeeService {
     }
 
     /**
-     * @param coffeeDTO
-     * @return
-     * @throws NullParamException      ICoffeeNoRefDTO
-     * @throws NoValidIdException      ICoffeeNoRefDTO
-     * @throws NoValidNameException    ICoffeeNoRefDTO
-     * @throws NoValidTipSizeException ICoffeeNoRefDTO
+     * Creating coffee by ICoffeeCreateDTO.
+     * @param coffeeDTO object with ICoffeeCreateDTO type.
+     * @return Coffee object.
+     * @throws NullParamException when coffeeDTO is null or it's fields is null.
+     * @throws NoValidNameException when coffeeDTO's name is empty.
+     * @throws NoValidPriceException when coffeeDTO's price is NaN, Infinite or less than zero.
      */
     public Coffee create(ICoffeeCreateDTO coffeeDTO) {
         if (coffeeDTO == null)
@@ -59,12 +76,17 @@ public class CoffeeService {
     }
 
     /**
-     * @param coffeeDTO
-     * @return
-     * @throws NullParamException      ICoffeeNoRefDTO
-     * @throws NoValidIdException      ICoffeeNoRefDTO
-     * @throws NoValidNameException    ICoffeeNoRefDTO
-     * @throws NoValidTipSizeException ICoffeeNoRefDTO
+     * Updating coffee by ICoffeeUpdateDTO.
+     * Deleting references that has in db but hasn't in coffeeDTO.
+     * Add references that hasn't in db but has in coffeeDTO.
+     * @param coffeeDTO object with ICoffeeUpdateDTO type.
+     * @return Coffee object.
+     * @throws NullParamException when coffeeDTO is null or some of it fields is null.
+     * @throws NoValidIdException form mapper, when coffeeDTO's id is less than zero.
+     * @throws NoValidNameException form mapper, when coffeeDTO's name is empty.
+     * @throws NoValidPriceException from mapper, when coffeeDTO's price is NaN, Infinite or less than zero.
+     * @throws CoffeeNotFoundException when coffee with this id is not found.
+     * @throws OrderNotFoundException when order for coffee's orderList is not found.
      */
     public Coffee update(ICoffeeUpdateDTO coffeeDTO) {
         if (coffeeDTO == null)
@@ -90,6 +112,14 @@ public class CoffeeService {
         return coffee;
     }
 
+    /**
+     * Delete coffee with specified id.
+     * @param id deleting coffee id.
+     * @throws NullParamException when id is null.
+     * @throws NoValidIdException when id is less than zero.
+     * @throws CoffeeNotFoundException when coffee with specific id is not found.
+     * @throws CoffeeHasReferenceException when coffee whit specific id has references with some orders.
+     */
     public void delete(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -105,6 +135,14 @@ public class CoffeeService {
 
     }
 
+    /**
+     * Find coffee by specified id.
+     * @param id finding coffee's id.
+     * @return Coffee order with specified id.
+     * @throws NullParamException when id param is null.
+     * @throws NoValidIdException when id less than zero.
+     * @throws CoffeeNotFoundException when coffee with specified id is not found.
+     */
     public Coffee findById(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -119,6 +157,10 @@ public class CoffeeService {
         return coffee;
     }
 
+    /**
+     * Find all coffees.
+     * @return all coffee from db.
+     */
     public List<Coffee> findAll() {
         List<Coffee> coffeeList = this.coffeeRepository.findAll();
 
@@ -128,6 +170,14 @@ public class CoffeeService {
         return coffeeList;
     }
 
+    /**
+     * Find all coffee grouping by pages and limited.
+     * @param page number of representing page. Can't be less than zero.
+     * @param limit number maximum represented objects.
+     * @return list of object from specified page. Maximum number object in list equals limit.
+     * @throws NoValidPageException when page is less than zero.
+     * @throws NoValidLimitException when limit is less than one.
+     */
     public List<Coffee> findAllByPage(int page, int limit) {
         if (page < 0)
             throw new NoValidPageException(page);
