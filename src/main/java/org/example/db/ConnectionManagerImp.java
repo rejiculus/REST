@@ -3,43 +3,45 @@ package org.example.db;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class ConnectionManagerImp implements ConnectionManager {
-    private HikariDataSource dataSource;
+    private final HikariDataSource dataSource;
 
-    public ConnectionManagerImp(String url, String username, String password, int maxPoolSize) {
+    /**
+     * Конструктор с импортом настроек из файла
+     */
+    public ConnectionManagerImp(ConfigLoader configLoader) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(url);         // URL подключения к базе данных
-        config.setUsername(username);       // Имя пользователя для подключения
-        config.setPassword(password);       // Пароль для подключения
-        config.setMaximumPoolSize(maxPoolSize); // Максимальный размер пула соединений
 
-        // Дополнительные настройки HikariCP можно добавить по необходимости:
-        config.setConnectionTimeout(30000);  // Время ожидания подключения в миллисекундах
-        config.setIdleTimeout(600000);       // Время простоя до закрытия соединения
-        config.setMaxLifetime(1800000);      // Максимальная продолжительность жизни соединения
+        config.setJdbcUrl(configLoader.getProperty("db.url"));
+        config.setUsername(configLoader.getProperty("db.username"));
+        config.setPassword(configLoader.getProperty("db.password"));
+        config.setMaximumPoolSize(10);
+
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
         config.setDriverClassName("org.postgresql.Driver");
 
         this.dataSource = new HikariDataSource(config);
     }
 
     /**
-     * Конструктор с импортом настроек из файла
+     * Конструктор с заданием настроек
      */
-    public ConnectionManagerImp() {
+    public ConnectionManagerImp(String url, String username, String password) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(DatabaseConfig.getDbUrl());       // URL подключения к базе данных
-        config.setUsername(DatabaseConfig.getDbUsername()); // Имя пользователя для подключения
-        config.setPassword(DatabaseConfig.getDbPassword()); // Пароль для подключения
-        config.setMaximumPoolSize(10);                      // Максимальный размер пула соединений
 
-        // Дополнительные настройки HikariCP можно добавить по необходимости:
-        config.setConnectionTimeout(30000);  // Время ожидания подключения в миллисекундах
-        config.setIdleTimeout(600000);       // Время простоя до закрытия соединения
-        config.setMaxLifetime(1800000);      // Максимальная продолжительность жизни соединения
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(10);
+
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
         config.setDriverClassName("org.postgresql.Driver");
 
         this.dataSource = new HikariDataSource(config);
