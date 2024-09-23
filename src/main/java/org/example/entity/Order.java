@@ -106,6 +106,25 @@ public class Order {
     }
 
     /**
+     * Minimum required constructor with created param.
+     *
+     * @param barista    who prepared this order. Can't be null.
+     * @param created    datetime when order is ordered.
+     * @param coffeeList list of ordered coffee. Can't be null.
+     * @throws NullParamException thrown when one of param equals null.
+     */
+    public Order(Barista barista, List<Coffee> coffeeList, LocalDateTime created) {
+        if (barista == null || coffeeList == null || created==null)
+            throw new NullParamException();
+
+        this.id = -1L;
+        this.barista = barista;
+        this.coffeeList = new ArrayList<>(coffeeList);
+        this.created = created;
+        this.price = 0.0;
+    }
+
+    /**
      * Get unique identifier.
      *
      * @return unique identifier.
