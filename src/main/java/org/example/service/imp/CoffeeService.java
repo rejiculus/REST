@@ -9,6 +9,7 @@ import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.ICoffeeService;
 import org.example.service.dto.ICoffeeCreateDTO;
 import org.example.service.dto.ICoffeeUpdateDTO;
 import org.example.service.exception.CoffeeHasReferenceException;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * Service to processing coffee entity.
  */
-public class CoffeeService {
+public class CoffeeService implements ICoffeeService {
     private final CoffeeRepository coffeeRepository;
     private final OrderRepository orderRepository;
 
@@ -67,6 +68,7 @@ public class CoffeeService {
      * @throws NoValidNameException when coffeeDTO's name is empty.
      * @throws NoValidPriceException when coffeeDTO's price is NaN, Infinite or less than zero.
      */
+    @Override
     public Coffee create(ICoffeeCreateDTO coffeeDTO) {
         if (coffeeDTO == null)
             throw new NullParamException();
@@ -88,6 +90,7 @@ public class CoffeeService {
      * @throws CoffeeNotFoundException when coffee with this id is not found.
      * @throws OrderNotFoundException when order for coffee's orderList is not found.
      */
+    @Override
     public Coffee update(ICoffeeUpdateDTO coffeeDTO) {
         if (coffeeDTO == null)
             throw new NullParamException();
@@ -120,6 +123,7 @@ public class CoffeeService {
      * @throws CoffeeNotFoundException when coffee with specific id is not found.
      * @throws CoffeeHasReferenceException when coffee whit specific id has references with some orders.
      */
+    @Override
     public void delete(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -143,6 +147,7 @@ public class CoffeeService {
      * @throws NoValidIdException when id less than zero.
      * @throws CoffeeNotFoundException when coffee with specified id is not found.
      */
+    @Override
     public Coffee findById(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -161,6 +166,7 @@ public class CoffeeService {
      * Find all coffees.
      * @return all coffee from db.
      */
+    @Override
     public List<Coffee> findAll() {
         List<Coffee> coffeeList = this.coffeeRepository.findAll();
 
@@ -178,6 +184,7 @@ public class CoffeeService {
      * @throws NoValidPageException when page is less than zero.
      * @throws NoValidLimitException when limit is less than one.
      */
+    @Override
     public List<Coffee> findAllByPage(int page, int limit) {
         if (page < 0)
             throw new NoValidPageException(page);

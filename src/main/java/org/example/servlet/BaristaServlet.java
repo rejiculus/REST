@@ -10,6 +10,7 @@ import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
 import org.example.entity.Barista;
 import org.example.entity.exception.*;
+import org.example.service.IBaristaService;
 import org.example.service.imp.BaristaService;
 import org.example.servlet.dto.BaristaCreateDTO;
 import org.example.servlet.dto.BaristaPublicDTO;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 @WebServlet(value = "/barista/*")
 public class BaristaServlet extends SimpleServlet {
     private static final Logger log = Logger.getLogger(BaristaServlet.class.getName());
-    private final transient BaristaService baristaService;
+    private final transient IBaristaService baristaService;
     private final transient ConnectionManager connectionManager;
     private final transient Gson mapper;
 

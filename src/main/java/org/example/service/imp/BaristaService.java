@@ -9,6 +9,7 @@ import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.repository.imp.BaristaRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.IBaristaService;
 import org.example.service.dto.IBaristaCreateDTO;
 import org.example.service.dto.IBaristaUpdateDTO;
 import org.example.service.mapper.BaristaDtoToBaristaMapper;
@@ -20,7 +21,7 @@ import java.util.List;
 /**
  * Service for processing barista entity.
  */
-public class BaristaService {
+public class BaristaService implements IBaristaService {
     private final BaristaRepository baristaRepository;
     private final OrderRepository orderRepository;
     private final BaristaDtoToBaristaMapper mapper;
@@ -64,6 +65,7 @@ public class BaristaService {
      * @throws NoValidNameException form mapper, when baristaDTO's fullName is empty.
      * @throws NoValidTipSizeException from mapper, when baristaDTO's tipSize is NaN, Infinite or less than zero.
      */
+    @Override
     public Barista create(IBaristaCreateDTO baristaDTO) {
         if (baristaDTO == null)
             throw new NullParamException();
@@ -85,6 +87,7 @@ public class BaristaService {
      * @throws BaristaNotFoundException from baristaRepository, when id is not found in db.
      * @throws OrderNotFoundException from orderRepository, when order form baristaDTO's orderIdList is not found in db.
      */
+    @Override
     public Barista update(IBaristaUpdateDTO baristaDTO) {
         if (baristaDTO == null)
             throw new NullParamException();
@@ -118,6 +121,7 @@ public class BaristaService {
      * @throws NoValidIdException when id is less than zero.
      * @throws BaristaNotFoundException when barista with this id is not found in db.
      */
+    @Override
     public void delete(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -140,6 +144,7 @@ public class BaristaService {
      * @throws NoValidIdException when id is less than zero.
      * @throws BaristaNotFoundException when barista with this id is not found in db.
      */
+    @Override
     public Barista findById(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -158,6 +163,7 @@ public class BaristaService {
      * Found all barista.
      * @return list of barista's objects
      */
+    @Override
     public List<Barista> findAll() {
         List<Barista> baristaList = this.baristaRepository.findAll();
         for (Barista barista : baristaList) {
@@ -174,6 +180,7 @@ public class BaristaService {
      * @throws NoValidPageException when page is less than zero.
      * @throws NoValidLimitException when limit is less than one.
      */
+    @Override
     public List<Barista> findAllByPage(int page, int limit) {
         if (page < 0)
             throw new NoValidPageException(page);

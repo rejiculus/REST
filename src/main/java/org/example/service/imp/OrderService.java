@@ -11,6 +11,7 @@ import org.example.repository.exception.NoValidPageException;
 import org.example.repository.imp.BaristaRepositoryImp;
 import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.IOrderService;
 import org.example.service.dto.IOrderCreateDTO;
 import org.example.service.dto.IOrderUpdateDTO;
 import org.example.service.exception.OrderAlreadyCompletedException;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class OrderService {
+public class OrderService implements IOrderService {
     private final OrderRepository orderRepository;
     private final CoffeeRepository coffeeRepository;
     private final OrderDtoToOrderMapper mapper;
@@ -56,6 +57,7 @@ public class OrderService {
      * @throws CompletedBeforeCreatedException
      * @throws NoValidTipSizeException
      */
+    @Override
     public Order create(IOrderCreateDTO orderDTO) {
         if (orderDTO == null)
             throw new NullParamException();
@@ -82,6 +84,7 @@ public class OrderService {
      * @throws CompletedBeforeCreatedException
      * @throws NoValidTipSizeException
      */
+    @Override
     public Order update(IOrderUpdateDTO orderDTO) {
         if (orderDTO == null)
             throw new NullParamException();
@@ -113,6 +116,7 @@ public class OrderService {
         return order;
     }
 
+    @Override
     public void delete(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -127,6 +131,7 @@ public class OrderService {
         orderRepository.deletePairsByOrderId(id);
     }
 
+    @Override
     public List<Order> getOrderQueue() {
         List<Order> orderList = this.orderRepository.findAll();
         orderList = orderList.stream()
@@ -139,6 +144,7 @@ public class OrderService {
         return orderList;
     }
 
+    @Override
     public Order completeOrder(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -158,6 +164,7 @@ public class OrderService {
         return order;
     }
 
+    @Override
     public List<Order> findAll() {
         List<Order> orderList = this.orderRepository.findAll();
         for (Order order : orderList) {
@@ -166,6 +173,7 @@ public class OrderService {
         return orderList;
     }
 
+    @Override
     public Order findById(Long id) {
         if (id == null)
             throw new NullParamException();
@@ -180,6 +188,7 @@ public class OrderService {
         return order;
     }
 
+    @Override
     public List<Order> findAllByPage(int page, int limit) {
         if (page < 0)
             throw new NoValidPageException(page);

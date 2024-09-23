@@ -10,6 +10,7 @@ import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
+import org.example.service.IOrderService;
 import org.example.service.exception.OrderAlreadyCompletedException;
 import org.example.service.exception.OrderHasReferencesException;
 import org.example.service.imp.OrderService;
@@ -30,7 +31,7 @@ import java.util.logging.Logger;
 public class OrderServlet extends SimpleServlet {
 
     private static final Logger log = Logger.getLogger(OrderServlet.class.getName());
-    private final transient OrderService orderService;
+    private final transient IOrderService orderService;
     private final transient ConnectionManager connectionManager;
     private final transient Gson mapper;
 

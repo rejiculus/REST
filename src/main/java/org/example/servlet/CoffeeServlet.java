@@ -10,6 +10,7 @@ import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
+import org.example.service.ICoffeeService;
 import org.example.service.exception.CoffeeHasReferenceException;
 import org.example.service.imp.CoffeeService;
 import org.example.servlet.dto.CoffeeCreateDTO;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 @WebServlet(value = "/coffee/*")
 public class CoffeeServlet extends SimpleServlet {
     private static final Logger log = Logger.getLogger(CoffeeServlet.class.getName());
-    private final transient CoffeeService coffeeService;
+    private final transient ICoffeeService coffeeService;
     private final transient ConnectionManager connectionManager;
     private final transient Gson mapper;
 
