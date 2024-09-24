@@ -3,6 +3,7 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
@@ -143,7 +144,7 @@ public class BaristaServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
-                 NullParamException | JsonMappingException e) {
+                 NullParamException | JsonMappingException | NumberFormatException | JsonSyntaxException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);

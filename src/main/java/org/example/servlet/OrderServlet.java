@@ -3,6 +3,7 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -153,7 +155,7 @@ public class OrderServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException | NullParamException |
-                 JsonMappingException e) {
+                 JsonMappingException | JsonSyntaxException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
@@ -204,7 +206,8 @@ public class OrderServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException | NullParamException |
-                 JsonMappingException | NumberFormatException e) {
+                 JsonMappingException | NumberFormatException | JsonSyntaxException | BaristaNotFoundException |
+                 CoffeeNotFoundException | DateTimeParseException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);

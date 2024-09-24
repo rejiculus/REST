@@ -3,6 +3,7 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
@@ -81,7 +82,7 @@ public class CoffeeServlet extends SimpleServlet {
 
 
         } catch (NoValidPageException | NoValidLimitException | NullParamException | NoValidIdException |
-                 NumberFormatException | JsonMappingException e) {
+                 NumberFormatException | JsonMappingException | JsonSyntaxException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
@@ -145,7 +146,7 @@ public class CoffeeServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
-        } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
+        } catch (NoValidIdException | NoValidPriceException | JsonSyntaxException | NoValidNameException |
                  NullParamException | JsonMappingException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
@@ -182,7 +183,8 @@ public class CoffeeServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException |
-                 NullParamException | JsonMappingException | NumberFormatException e) {
+                 NullParamException | JsonMappingException | NumberFormatException |
+                 JsonSyntaxException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
