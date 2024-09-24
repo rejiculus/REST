@@ -1,6 +1,5 @@
 package org.example.repository.imp;
 
-import org.example.db.ConnectionManager;
 import org.example.entity.Coffee;
 import org.example.entity.exception.CoffeeNotFoundException;
 import org.example.entity.exception.NoValidIdException;
@@ -18,28 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class CoffeeRepositoryImp extends CoffeeRepository {
-    private CoffeeMapper mapper;
-
-    public CoffeeRepositoryImp(ConnectionManager connectionManager, CoffeeMapper mapper) throws SQLException {
-        super(connectionManager.getConnection());
-
-        if (mapper == null)
-            throw new NullParamException();
-        this.mapper = mapper;
-    }
-
-    public CoffeeRepositoryImp(Connection connection, CoffeeMapper mapper) {
-        super(connection);
-
-        if (mapper == null)
-            throw new NullParamException();
-        this.mapper = mapper;
-    }
-
-    public CoffeeRepositoryImp(ConnectionManager connectionManager) throws SQLException {
-        super(connectionManager.getConnection());
-        this.mapper = new CoffeeMapper();
-    }
+    private final CoffeeMapper mapper;
 
     public CoffeeRepositoryImp(Connection connection) {
         super(connection);

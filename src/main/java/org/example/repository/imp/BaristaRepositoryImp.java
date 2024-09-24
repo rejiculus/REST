@@ -15,9 +15,10 @@ import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
+
 public class BaristaRepositoryImp implements BaristaRepository {
-    private Connection connection;
-    private BaristaMapper mapper;
+    private final Connection connection;
+    private final BaristaMapper mapper;
 
 
     public BaristaRepositoryImp(Connection connection) {
