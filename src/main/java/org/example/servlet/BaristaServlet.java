@@ -3,21 +3,21 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Barista;
 import org.example.entity.exception.*;
+import org.example.repository.exception.DataBaseException;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
 import org.example.service.IBaristaService;
 import org.example.service.imp.BaristaService;
+import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.BaristaCreateDTO;
 import org.example.servlet.dto.BaristaPublicDTO;
 import org.example.servlet.dto.BaristaUpdateDTO;
-import org.example.servlet.adapter.LocalDateTimeAdapter;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -26,21 +26,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@WebServlet(value = "/barista/*")
 public class BaristaServlet extends SimpleServlet {
-    private static final Logger log = Logger.getLogger(BaristaServlet.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(BaristaServlet.class.getName());
     private final transient IBaristaService baristaService;
-    private final transient ConnectionManager connectionManager;
-    private final transient Gson mapper;
+    private final transient Gson mapper = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
-    public static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    private static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    private static final String NOT_FOUND = "Not found: %s";
+    private static final String BAD_PARAMS = "Bad params: %s";
 
-    public BaristaServlet() throws SQLException {
-        connectionManager = new ConnectionManagerImp();
-        mapper = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
+    private static final String SPECIFIED_BARISTA_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
-        this.baristaService = new BaristaService(connectionManager.getConnection());
+    public BaristaServlet(ConnectionManager connectionManager) {
+        if (connectionManager == null)
+            throw new NullParamException();
+
+        try {
+            this.baristaService = new BaristaService(connectionManager.getConnection());
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
     }
 
 
@@ -48,7 +55,6 @@ public class BaristaServlet extends SimpleServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-
             resp.setContentType("text/html");
 
             if (pathInfo == null || pathInfo.equals("/")) {
@@ -62,22 +68,27 @@ public class BaristaServlet extends SimpleServlet {
                     findAll(resp);
                 }
 
-            } else if (pathInfo.matches("/\\d+/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            } else if (pathInfo.matches(SPECIFIED_BARISTA_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 findById(id, resp);
             } else {
-                String message = String.format("Bad request: %s", pathInfo);
-                log.severe(message);
+                String message = String.format(BAD_PATH, pathInfo);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
 
-        } catch (NumberFormatException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (NoValidPageException | NoValidLimitException | NullParamException | NoValidIdException |
+                 NumberFormatException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (BaristaNotFoundException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -124,17 +135,20 @@ public class BaristaServlet extends SimpleServlet {
             String pathInfo = req.getPathInfo();
             req.setCharacterEncoding("UTF-8");
 
-            if (pathInfo == null || pathInfo.matches("/?")) {//regex путь соответствующий "/" или ""
+            if (pathInfo == null || pathInfo.matches("/")) {//regex путь соответствующий "/" или ""
                 create(req, resp);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
-                 NullParamException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                 NullParamException | JsonMappingException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -153,31 +167,28 @@ public class BaristaServlet extends SimpleServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-            if (pathInfo != null && pathInfo.matches("\\/\\d+\\/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            if (pathInfo != null && pathInfo.matches(SPECIFIED_BARISTA_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 update(id, req);
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.flushBuffer();
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
-                 NullParamException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                 NullParamException | NumberFormatException | JsonMappingException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (BaristaNotFoundException e) {
-            String message = String.format("Bad order: %s", e.getMessage());
-            log.severe(message);
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch (NumberFormatException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad param!");
-        } catch (JsonMappingException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad param! " + e);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -191,19 +202,26 @@ public class BaristaServlet extends SimpleServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-            if (pathInfo != null && pathInfo.matches("\\/\\d+\\/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            if (pathInfo != null && pathInfo.matches(SPECIFIED_BARISTA_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 delete(id);
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.flushBuffer();
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+        } catch (NumberFormatException | NullParamException | NoValidIdException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (BaristaNotFoundException e) {
-            log.severe(e.getMessage());
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -211,9 +229,4 @@ public class BaristaServlet extends SimpleServlet {
         baristaService.delete(id);
     }
 
-    @Override
-    public void destroy() {
-        super.destroy();
-        ((ConnectionManagerImp) connectionManager).close();
-    }
 }

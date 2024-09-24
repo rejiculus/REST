@@ -3,21 +3,22 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
+import org.example.repository.exception.DataBaseException;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
 import org.example.service.IOrderService;
 import org.example.service.exception.OrderAlreadyCompletedException;
 import org.example.service.exception.OrderHasReferencesException;
 import org.example.service.imp.OrderService;
+import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.OrderCreateDTO;
 import org.example.servlet.dto.OrderPublicDTO;
 import org.example.servlet.dto.OrderUpdateDTO;
-import org.example.servlet.adapter.LocalDateTimeAdapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,24 +28,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@WebServlet(name = "OrderServlet", value = "/orders/*")
 public class OrderServlet extends SimpleServlet {
 
-    private static final Logger log = Logger.getLogger(OrderServlet.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(OrderServlet.class.getName());
     private final transient IOrderService orderService;
-    private final transient ConnectionManager connectionManager;
-    private final transient Gson mapper;
+    private final transient Gson mapper = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
-    public static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
-    public static final String NOT_FOUND = "Not found: %s";
-    public static final String HAS_REF = "Has references: %s";
+    private static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    private static final String NOT_FOUND = "Not found: %s";
+    private static final String HAS_REF = "Has references: %s";
+    private static final String BAD_PARAMS = "Bad params: %s";
 
-    public OrderServlet() throws SQLException {
-        connectionManager = new ConnectionManagerImp();
-        orderService = new OrderService(connectionManager.getConnection());
-        mapper = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
+    private static final String SPECIFIED_ORDER_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
+
+    public OrderServlet(ConnectionManager connectionManager) {
+        if (connectionManager == null)
+            throw new NullParamException();
+
+        try {
+            orderService = new OrderService(connectionManager.getConnection());
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
     }
 
     @Override
@@ -64,22 +71,27 @@ public class OrderServlet extends SimpleServlet {
                 } else {
                     findAll(resp);
                 }
-            } else if (pathInfo.matches("\\/queue\\/?")) { // regex match "/queue" or "/queue/"
+            } else if (pathInfo.matches("/queue/?")) { // regex match "/queue" or "/queue/"
                 getQueue(resp);
-            } else if (pathInfo.matches("\\/\\d+\\/?")) {//regex match "/[цифры]/" or "/[цифры]"
+            } else if (pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex match "/[цифры]/" or "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 findById(id, resp);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.severe(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+        } catch (NoValidPageException | NoValidLimitException | NullParamException | NoValidIdException |
+                 NumberFormatException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (OrderNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
-            log.severe(message);
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -137,17 +149,20 @@ public class OrderServlet extends SimpleServlet {
                 create(req, resp);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.info(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
-        } catch (NoValidIdException | NoValidPriceException | NoValidNameException |
-                 NullParamException e) {
-            log.severe("Param error: " + e.getMessage());
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (NoValidIdException | NoValidPriceException | NoValidNameException | NullParamException |
+                 JsonMappingException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (CoffeeNotFoundException | BaristaNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
-            log.severe(message);
+            LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -171,13 +186,13 @@ public class OrderServlet extends SimpleServlet {
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, String.format(BAD_PATH, pathInfo));
-            } else if (pathInfo.matches("/\\d+/?")) {//regex match "/[цифры]/" or "/[цифры]"
+            } else if (pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex match "/[цифры]/" or "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
 
                 update(id, req);
 
                 resp.setStatus(HttpServletResponse.SC_OK);
-            } else if (pathInfo.matches("\\/\\d+\\/complete\\/?")) { //regex match "/[digits]/complete" or "/[digits]/complete/"
+            } else if (pathInfo.matches("/\\d+/complete/?")) { //regex match "/[digits]/complete" or "/[digits]/complete/"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
 
                 complete(id);
@@ -185,22 +200,24 @@ public class OrderServlet extends SimpleServlet {
                 resp.setStatus(HttpServletResponse.SC_OK);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.severe(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
-        } catch (NoValidIdException | NoValidPriceException | NoValidNameException |
-                 NullParamException e) {
-            String message = String.format(BAD_PATH, e.getMessage());
-            log.severe(message);
+        } catch (NoValidIdException | NoValidPriceException | NoValidNameException | NullParamException |
+                 JsonMappingException | NumberFormatException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (OrderNotFoundException e) {
             String message = String.format(BAD_PATH, e.getMessage());
-            log.severe(message);
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
         } catch (OrderAlreadyCompletedException e) {
-            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, e.getMessage());
-        } catch (JsonMappingException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad param! " + e);
+            String message = String.format("Already exist: %s", e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -225,7 +242,7 @@ public class OrderServlet extends SimpleServlet {
         try {
             String pathInfo = req.getPathInfo();
 
-            if (pathInfo != null && pathInfo.matches("/\\d+/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            if (pathInfo != null && pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
 
                 delete(id);
@@ -233,17 +250,23 @@ public class OrderServlet extends SimpleServlet {
                 resp.setStatus(HttpServletResponse.SC_OK);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+        } catch (NullParamException | NoValidIdException | NumberFormatException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
         } catch (OrderNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
-            log.severe(message);
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        }catch (OrderHasReferencesException e) {
+        } catch (OrderHasReferencesException e) {
             String message = String.format(HAS_REF, e.getMessage());
-            log.severe(message);
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -251,10 +274,4 @@ public class OrderServlet extends SimpleServlet {
         orderService.delete(id);
     }
 
-
-    @Override
-    public void destroy() {
-        super.destroy();
-        ((ConnectionManagerImp) connectionManager).close();
-    }
 }

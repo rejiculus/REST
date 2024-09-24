@@ -3,20 +3,21 @@ package org.example.servlet;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.db.ConnectionManager;
-import org.example.db.ConnectionManagerImp;
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
+import org.example.repository.exception.DataBaseException;
+import org.example.repository.exception.NoValidLimitException;
+import org.example.repository.exception.NoValidPageException;
 import org.example.service.ICoffeeService;
 import org.example.service.exception.CoffeeHasReferenceException;
 import org.example.service.imp.CoffeeService;
+import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.CoffeeCreateDTO;
 import org.example.servlet.dto.CoffeePublicDTO;
 import org.example.servlet.dto.CoffeeUpdateDTO;
-import org.example.servlet.adapter.LocalDateTimeAdapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,30 +27,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@WebServlet(value = "/coffee/*")
 public class CoffeeServlet extends SimpleServlet {
-    private static final Logger log = Logger.getLogger(CoffeeServlet.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CoffeeServlet.class.getName());
     private final transient ICoffeeService coffeeService;
-    private final transient ConnectionManager connectionManager;
-    private final transient Gson mapper;
+    private final transient Gson mapper = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
-    public static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    private static final String BAD_PATH = "Bad path! Path '%s' is not processing!";
+    private static final String NOT_FOUND = "Not found: %s";
+    private static final String BAD_PARAMS = "Bad params: %s";
     public static final String HAS_REF = "Has references: %s";
 
-    public CoffeeServlet() throws SQLException {
-        connectionManager = new ConnectionManagerImp();
-        mapper = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-        coffeeService = new CoffeeService(connectionManager.getConnection());
+    private static final String SPECIFIED_COFFEE_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
+
+
+    public CoffeeServlet(ConnectionManager connectionManager) {
+        if (connectionManager == null)
+            throw new NullParamException();
+
+        try {
+            coffeeService = new CoffeeService(connectionManager.getConnection());
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
     }
+
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
             Map<String, String[]> params = req.getParameterMap();
-            resp.setContentType("text/html");
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 if (params.containsKey("page") && params.containsKey("limit")) {
@@ -60,21 +69,28 @@ public class CoffeeServlet extends SimpleServlet {
                 } else {
                     findAll(resp);
                 }
-            } else if (pathInfo.matches("/\\d+/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            } else if (pathInfo.matches(SPECIFIED_COFFEE_REGEX)) { //regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
 
                 findById(id, resp);
             } else {
-                String message = String.format("Bad request: %s", pathInfo);
-                log.severe(message);
+                String message = String.format(BAD_PATH, pathInfo);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
 
-        } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (NoValidPageException | NoValidLimitException | NullParamException | NoValidIdException |
+                 NumberFormatException | JsonMappingException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (CoffeeNotFoundException e) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -120,21 +136,22 @@ public class CoffeeServlet extends SimpleServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-            req.setCharacterEncoding("UTF-8");
+
             if (pathInfo == null || pathInfo.matches("/")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 create(req, resp);
-                resp.sendError(HttpServletResponse.SC_CREATED);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
-                 NullParamException e) {
-            String message = String.format("Bad Request: %s", e.getMessage());
-            log.severe(message);
+                 NullParamException | JsonMappingException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -154,30 +171,27 @@ public class CoffeeServlet extends SimpleServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-            req.setCharacterEncoding("UTF-8");
 
-            if (pathInfo != null && pathInfo.matches("\\/\\d+\\/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            if (pathInfo != null && pathInfo.matches(SPECIFIED_COFFEE_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 update(id, req);
                 resp.setStatus(HttpServletResponse.SC_OK);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException |
-                 NullParamException e) {
-            String message = String.format("Bad Request: %s", e.getMessage());
-            log.severe(message);
+                 NullParamException | JsonMappingException | NumberFormatException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (CoffeeNotFoundException e) {
-            String message = String.format("Not found: %s", e.getMessage());
-            log.severe(message);
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch (JsonMappingException e) {
-            String message = String.format("Bad param: %s", e.getMessage());
-            log.severe(message);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -192,23 +206,29 @@ public class CoffeeServlet extends SimpleServlet {
         try {
             String pathInfo = req.getPathInfo();
 
-            if (pathInfo != null && pathInfo.matches("\\/\\d+\\/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
+            if (pathInfo != null && pathInfo.matches(SPECIFIED_COFFEE_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 delete(id);
                 resp.setStatus(HttpServletResponse.SC_OK);
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
-                log.severe(message);
+                LOGGER.severe(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+        } catch (NumberFormatException | NullParamException | NoValidIdException e) {
+            String message = String.format(BAD_PARAMS, e.getMessage());
+            LOGGER.info(message);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (CoffeeNotFoundException e) {
-            String message = String.format("Not found: %s", e.getMessage());
-            log.severe(message);
+            String message = String.format(NOT_FOUND, e.getMessage());
+            LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
         } catch (CoffeeHasReferenceException e) {
             String message = String.format(HAS_REF, e.getMessage());
-            log.severe(message);
+            LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -216,10 +236,4 @@ public class CoffeeServlet extends SimpleServlet {
         coffeeService.delete(id);
     }
 
-
-    @Override
-    public void destroy() {
-        super.destroy();
-        ((ConnectionManagerImp) connectionManager).close();
-    }
 }
