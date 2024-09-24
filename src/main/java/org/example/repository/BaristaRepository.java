@@ -52,7 +52,7 @@ public interface BaristaRepository {
      * Found barista from db by id.
      *
      * @param id barista's id.
-     * @return Barista's object.
+     * @return Optional Barista object.
      */
     Optional<Barista> findById(Long id);
 }

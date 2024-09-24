@@ -9,8 +9,14 @@ import java.util.ArrayList;
 
 public class CoffeeMapper implements SimpleMapper<Coffee> {
 
+    /**
+     * Mapping result set to Coffee object.
+     * @param resultSet result data from sql query.
+     * @return Coffee object.
+     * @throws NullParamException when some params in result set is not defined.
+     */
     @Override
-    public Coffee map(ResultSet resultSet) throws SQLException {
+    public Coffee map(ResultSet resultSet) {
         try {
             int idColumn = resultSet.findColumn("id");
             int nameColumn = resultSet.findColumn("name");

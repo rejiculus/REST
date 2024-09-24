@@ -19,8 +19,15 @@ public class OrderMapper implements SimpleMapper<Order> {
         this.baristaRepository = baristaRepository;
     }
 
+    /**
+     * Mapping result set to Order object.
+     * @param resultSet result data from sql query.
+     * @return Order object.
+     * @throws NullParamException when required params is not defined.
+     * @throws BaristaNotFoundException when specified barista is not found in db.
+     */
     @Override
-    public Order map(ResultSet resultSet) throws SQLException {
+    public Order map(ResultSet resultSet) {
         try {
             int idColumn = resultSet.findColumn("id");
             int priceColumn = resultSet.findColumn("price");

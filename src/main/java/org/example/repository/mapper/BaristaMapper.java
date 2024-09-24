@@ -7,10 +7,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/**
+ * Mapper form result set to Barista object.
+ */
 public class BaristaMapper implements SimpleMapper<Barista> {
 
+    /**
+     * Mapping result set ot Barista object.
+     * Set to order list - empty list!
+     * @param resultSet result data form sql query.
+     * @return Barista object.
+     * @throws NullParamException when required params is not defined in result set.
+     */
     @Override
-    public Barista map(ResultSet resultSet) throws SQLException {
+    public Barista map(ResultSet resultSet) {
         try {
             int idColumn = resultSet.findColumn("id");
             int fullNameColumn = resultSet.findColumn("full_name");
