@@ -42,6 +42,7 @@ public class OrderServlet extends SimpleServlet {
     private static final String NOT_FOUND = "Not found: %s";
     private static final String HAS_REF = "Has references: %s";
     private static final String BAD_PARAMS = "Bad params: %s";
+    private static final String SOME_DATA_BASE_EXCEPTION = "Some database error: %s";
 
     private static final String SPECIFIED_ORDER_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
@@ -92,6 +93,10 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        }  catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -163,6 +168,10 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -219,6 +228,10 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format("Already exist: %s", e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -268,6 +281,10 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }

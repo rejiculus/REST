@@ -39,6 +39,8 @@ public class CoffeeServlet extends SimpleServlet {
     private static final String NOT_FOUND = "Not found: %s";
     private static final String BAD_PARAMS = "Bad params: %s";
     public static final String HAS_REF = "Has references: %s";
+    private static final String SOME_DATA_BASE_EXCEPTION = "Some database error: %s";
+
 
     private static final String SPECIFIED_COFFEE_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
@@ -90,6 +92,10 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -151,6 +157,10 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -192,6 +202,10 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -229,6 +243,10 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+        } catch(DataBaseException e){
+            String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
+            LOGGER.severe(message);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
