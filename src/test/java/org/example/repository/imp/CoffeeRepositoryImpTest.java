@@ -13,12 +13,10 @@ import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.repository.mapper.CoffeeMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -59,11 +57,11 @@ class CoffeeRepositoryImpTest {
     }
 
     @Test
-    void constructorsTest() {
+    void constructorsTest() throws SQLException {
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        CoffeeMapper mapper = Mockito.spy(new CoffeeMapper());
-        Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connectionManager, mapper));
-        Assertions.assertThrows(NullParamException.class, () -> new CoffeeRepositoryImp(connectionManager, null));
+        Connection connection = connectionManager.getConnection();
+        Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connection));
+        Assertions.assertThrows(NullParamException.class, () -> new CoffeeRepositoryImp(null));
     }
 
     @Test

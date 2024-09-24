@@ -7,6 +7,7 @@ import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
+import org.example.repository.exception.KeyNotPresentException;
 import org.example.repository.imp.BaristaRepositoryImp;
 import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
@@ -80,6 +81,7 @@ class ManyToManyRepositoryTest {
         Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.addReference(null, null));
         Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.addReference(100L, -100L));
         Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.addReference(-100L, 100L));
+        Assertions.assertThrows(KeyNotPresentException.class, () -> coffeeRepository.addReference(1L, 100L));
     }
 
     @Test
@@ -104,7 +106,6 @@ class ManyToManyRepositoryTest {
         assertEquals(List.of(specificCoffee1, specificCoffee2, specificCoffee3), resultCoffeeList);
 
         coffeeRepository.deleteReference(specificOrder.getId(), specificCoffee1.getId());
-
 
         resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
         assertEquals(List.of(specificCoffee2, specificCoffee3), resultCoffeeList);
