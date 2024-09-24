@@ -37,7 +37,7 @@ public class OrderDtoToOrderMapper {
      * @throws CoffeeNotFoundException  when coffee from orderDTO is not found in db.
      */
     public Order map(IOrderCreateDTO orderDTO) {
-        if (orderDTO == null)
+        if (orderDTO == null || orderDTO.coffeeIdList() == null)
             throw new NullParamException();
 
         Barista barista = baristaRepository
@@ -66,7 +66,7 @@ public class OrderDtoToOrderMapper {
      * @throws NoValidPriceException           from order entity, when price is NaN, Infinite or less than zero.
      */
     public Order map(IOrderUpdateDTO orderDTO) {
-        if (orderDTO == null)
+        if (orderDTO == null || orderDTO.coffeeIdList() == null)
             throw new NullParamException();
 
         Barista barista = baristaRepository

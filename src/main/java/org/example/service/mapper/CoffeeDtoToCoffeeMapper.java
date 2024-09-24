@@ -48,7 +48,7 @@ public class CoffeeDtoToCoffeeMapper {
      * @throws OrderNotFoundException when order from coffeeDTO's orderIdList is not found.
      */
     public Coffee map(ICoffeeUpdateDTO coffeeDTO) {
-        if (coffeeDTO == null)
+        if (coffeeDTO == null || coffeeDTO.orderIdList() == null)
             throw new NullParamException();
 
         return new Coffee(

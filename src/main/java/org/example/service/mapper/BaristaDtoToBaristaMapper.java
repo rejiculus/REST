@@ -54,7 +54,7 @@ public class BaristaDtoToBaristaMapper {
      * @throws NoValidTipSizeException thrown, from barista entity, when tipSize in baristaDTO is NaN, Infinite or less than zero.
      */
     public Barista map(IBaristaUpdateDTO baristaDTO) {
-        if (baristaDTO == null)
+        if (baristaDTO == null || baristaDTO.orderIdList() == null)
             throw new NullParamException();
 
 
