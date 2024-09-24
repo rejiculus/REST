@@ -6,6 +6,9 @@ import org.example.service.dto.IBaristaUpdateDTO;
 
 import java.util.List;
 
+/**
+ * Interface to interacting with barista's in db.
+ */
 public interface IBaristaService {
     /**
      * Creating barista by IBaristaCreateDTO.

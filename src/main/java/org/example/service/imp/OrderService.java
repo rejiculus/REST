@@ -6,6 +6,7 @@ import org.example.entity.exception.*;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
+import org.example.repository.exception.KeyNotPresentException;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.repository.imp.BaristaRepositoryImp;
@@ -49,13 +50,12 @@ public class OrderService implements IOrderService {
     }
 
     /**
-     * @param orderDTO
-     * @return
-     * @throws NullParamException
-     * @throws CreatedNotDefinedException
-     * @throws NoValidIdException
-     * @throws CompletedBeforeCreatedException
-     * @throws NoValidTipSizeException
+     * Create 'order' in db by IOrderCreateDTO.
+     *
+     * @param orderDTO object with IOrderCreateDTO type.
+     * @return Order object.
+     * @throws NullParamException     when coffeeDTO is null or it's fields is null.
+     * @throws KeyNotPresentException from addReference, when some coffee in coffeeList is not found.
      */
     @Override
     public Order create(IOrderCreateDTO orderDTO) {
@@ -72,17 +72,25 @@ public class OrderService implements IOrderService {
         order.setCreated(LocalDateTime.now());
 
 
-        return this.orderRepository.create(order);
+        order = this.orderRepository.create(order);
+        List<Coffee> actualCoffeeList = order.getCoffeeList();
+        for (Coffee coffee : actualCoffeeList) {
+            orderRepository.addReference(order.getId(), coffee.getId());
+        }
+        return order;
     }
 
     /**
-     * @param orderDTO
-     * @return
-     * @throws NullParamException
-     * @throws CreatedNotDefinedException
-     * @throws NoValidIdException
-     * @throws CompletedBeforeCreatedException
-     * @throws NoValidTipSizeException
+     * Update 'order' in db by IOrderUpdateDTO.
+     *
+     * @param orderDTO object with IOrderUpdateDTO type.
+     * @return updated Order object.
+     * @throws NullParamException              when coffeeDTO is null or it's fields is null.
+     * @throws NoValidIdException              form mapper, when coffeeDTO's id is less than zero.
+     * @throws CreatedNotDefinedException      from mapper, when completed field is specified but created field is not.
+     * @throws CompletedBeforeCreatedException from mapper, when completed time is before created time.
+     * @throws NoValidTipSizeException         from mapper, when coffeeDTO's price is NaN, Infinite or less than zero.
+     * @throws KeyNotPresentException          from addReference, when some coffee in coffeeList is not found.
      */
     @Override
     public Order update(IOrderUpdateDTO orderDTO) {
@@ -116,6 +124,15 @@ public class OrderService implements IOrderService {
         return order;
     }
 
+    /**
+     * Delete 'order' by specified id.
+     *
+     * @param id deleting order's id.
+     * @throws NullParamException          when coffeeDTO is null or it's fields is null.
+     * @throws NoValidIdException          form mapper, when coffeeDTO's id is less than zero.
+     * @throws OrderHasReferencesException when order with specific id has references with some coffee's.
+     * @throws OrderNotFoundException      when order with specific id is not found in db.
+     */
     @Override
     public void delete(Long id) {
         if (id == null)
@@ -131,6 +148,12 @@ public class OrderService implements IOrderService {
         orderRepository.deletePairsByOrderId(id);
     }
 
+    /**
+     * Get 'order' queue. Oldest created, but not completed
+     * order - first, youngest - last.
+     *
+     * @return list of filtered and sorted orders.
+     */
     @Override
     public List<Order> getOrderQueue() {
         List<Order> orderList = this.orderRepository.findAll();
@@ -144,6 +167,17 @@ public class OrderService implements IOrderService {
         return orderList;
     }
 
+    /**
+     * Complete 'order' with specified 'id'.
+     * Specifying 'completed' field in 'order'.
+     *
+     * @param id completing order's id.
+     * @return completed order.
+     * @throws NullParamException             when coffeeDTO is null or it's fields is null.
+     * @throws NoValidIdException             form mapper, when coffeeDTO's id is less than zero.
+     * @throws OrderNotFoundException         when order with specific id is not found in db.
+     * @throws OrderAlreadyCompletedException when order already has completed time.
+     */
     @Override
     public Order completeOrder(Long id) {
         if (id == null)
@@ -164,6 +198,11 @@ public class OrderService implements IOrderService {
         return order;
     }
 
+    /**
+     * Find all 'order' in db.
+     *
+     * @return list of all 'order' objects
+     */
     @Override
     public List<Order> findAll() {
         List<Order> orderList = this.orderRepository.findAll();
@@ -173,6 +212,15 @@ public class OrderService implements IOrderService {
         return orderList;
     }
 
+    /**
+     * Find 'order' by specified id.
+     *
+     * @param id the desired order "id".
+     * @return Order object with specified id.
+     * @throws NullParamException     when coffeeDTO is null or it's fields is null.
+     * @throws NoValidIdException     form mapper, when coffeeDTO's id is less than zero.
+     * @throws OrderNotFoundException when order with specific id is not found in db.
+     */
     @Override
     public Order findById(Long id) {
         if (id == null)
@@ -188,6 +236,15 @@ public class OrderService implements IOrderService {
         return order;
     }
 
+    /**
+     * Find all 'order' grouping by pages and limited.
+     *
+     * @param page  number of representing page. Can't be less than zero.
+     * @param limit number maximum represented objects.
+     * @return list of object from specified page. Maximum number object in list equals limit.
+     * @throws NoValidPageException  when page is less than zero.
+     * @throws NoValidLimitException when limit is less than one.
+     */
     @Override
     public List<Order> findAllByPage(int page, int limit) {
         if (page < 0)

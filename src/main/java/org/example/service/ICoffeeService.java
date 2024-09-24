@@ -6,6 +6,9 @@ import org.example.service.dto.ICoffeeUpdateDTO;
 
 import java.util.List;
 
+/**
+ * Interface to interacting with coffee's in db.
+ */
 public interface ICoffeeService {
 
     /**
