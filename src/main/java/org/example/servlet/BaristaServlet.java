@@ -6,14 +6,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.db.ConnectionManager;
 import org.example.entity.Barista;
 import org.example.entity.exception.*;
 import org.example.repository.exception.DataBaseException;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.service.IBaristaService;
-import org.example.service.imp.BaristaService;
 import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.BaristaCreateDTO;
 import org.example.servlet.dto.BaristaPublicDTO;
@@ -21,7 +19,6 @@ import org.example.servlet.dto.BaristaUpdateDTO;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -41,15 +38,11 @@ public class BaristaServlet extends SimpleServlet {
 
     private static final String SPECIFIED_BARISTA_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
-    public BaristaServlet(ConnectionManager connectionManager) {
-        if (connectionManager == null)
+    public BaristaServlet(IBaristaService baristaService) {
+        if (baristaService == null)
             throw new NullParamException();
 
-        try {
-            this.baristaService = new BaristaService(connectionManager.getConnection());
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
+        this.baristaService = baristaService;
     }
 
 
@@ -89,7 +82,7 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -153,7 +146,7 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -197,7 +190,7 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -234,7 +227,7 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);

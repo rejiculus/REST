@@ -9,7 +9,11 @@ import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
 import org.example.entity.Barista;
 import org.example.repository.BaristaRepository;
+import org.example.repository.OrderRepository;
 import org.example.repository.imp.BaristaRepositoryImp;
+import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.IBaristaService;
+import org.example.service.imp.BaristaService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,10 +51,13 @@ class BaristaServletTest {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        baristaServlet = new BaristaServlet(connectionManager);
-
         Connection connection = connectionManager.getConnection();
+
         baristaRepository = new BaristaRepositoryImp(connection);
+        OrderRepository orderRepository = new OrderRepositoryImp(connection);
+        IBaristaService baristaService = new BaristaService(baristaRepository, orderRepository);
+
+        baristaServlet = new BaristaServlet(baristaService);
     }
 
     @AfterAll
@@ -242,6 +249,58 @@ class BaristaServletTest {
         baristaServlet.doPut(request, response);
 
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Test
+    void testDoPutUpdateWrong() throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        PrintWriter writer = mock(PrintWriter.class);
+        String specifiedJson = """
+                {
+                    "fullName": "bbb",
+                    "tipSize": -0.2,
+                    "orderIdList": []
+                }""";
+        BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
+        Barista barista = baristaRepository.create(new Barista("John Doe"));
+
+        when(request.getReader())
+                .thenReturn(bufferedReader);
+        when(request.getPathInfo())
+                .thenReturn("/" + barista.getId());
+        when(response.getWriter())
+                .thenReturn(writer);
+
+        baristaServlet.doPut(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
+    @Test
+    void testDoPutUpdateWrong2() throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        PrintWriter writer = mock(PrintWriter.class);
+        String specifiedJson = """
+                {
+                    "fullName": "",
+                    "tipSize": 0.2,
+                    "orderIdList": []
+                }""";
+        BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
+        Barista barista = baristaRepository.create(new Barista("John Doe"));
+
+        when(request.getReader())
+                .thenReturn(bufferedReader);
+        when(request.getPathInfo())
+                .thenReturn("/" + barista.getId());
+        when(response.getWriter())
+                .thenReturn(writer);
+
+        baristaServlet.doPut(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
     @Test

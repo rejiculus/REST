@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.db.ConnectionManager;
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
 import org.example.repository.exception.DataBaseException;
@@ -14,7 +13,6 @@ import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.service.ICoffeeService;
 import org.example.service.exception.CoffeeHasReferenceException;
-import org.example.service.imp.CoffeeService;
 import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.CoffeeCreateDTO;
 import org.example.servlet.dto.CoffeePublicDTO;
@@ -22,7 +20,6 @@ import org.example.servlet.dto.CoffeeUpdateDTO;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +38,13 @@ public class CoffeeServlet extends SimpleServlet {
     public static final String HAS_REF = "Has references: %s";
     private static final String SOME_DATA_BASE_EXCEPTION = "Some database error: %s";
 
-
     private static final String SPECIFIED_COFFEE_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
 
-    public CoffeeServlet(ConnectionManager connectionManager) {
-        if (connectionManager == null)
+    public CoffeeServlet(ICoffeeService coffeeService) {
+        if (coffeeService == null)
             throw new NullParamException();
-
-        try {
-            coffeeService = new CoffeeService(connectionManager.getConnection());
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
+        this.coffeeService = coffeeService;
     }
 
 
@@ -92,7 +83,7 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -157,7 +148,7 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -202,7 +193,7 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -243,7 +234,7 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);

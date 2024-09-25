@@ -10,9 +10,13 @@ import org.example.db.ConnectionManagerImp;
 import org.example.entity.Barista;
 import org.example.entity.Order;
 import org.example.repository.BaristaRepository;
+import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.imp.BaristaRepositoryImp;
+import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.IOrderService;
+import org.example.service.imp.OrderService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,9 +59,13 @@ class OrderServletTest {
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         Connection connection = connectionManager.getConnection();
 
-        orderServlet = new OrderServlet(connectionManager);
         orderRepository = new OrderRepositoryImp(connection);
         baristaRepository = new BaristaRepositoryImp(connection);
+        CoffeeRepository coffeeRepository = new CoffeeRepositoryImp(connection);
+
+        IOrderService orderService = new OrderService(baristaRepository, coffeeRepository, orderRepository);
+
+        orderServlet = new OrderServlet(orderService);
     }
 
     @AfterAll

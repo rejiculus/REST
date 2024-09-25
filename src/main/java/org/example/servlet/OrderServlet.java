@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.db.ConnectionManager;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
 import org.example.repository.exception.DataBaseException;
@@ -15,7 +14,6 @@ import org.example.repository.exception.NoValidPageException;
 import org.example.service.IOrderService;
 import org.example.service.exception.OrderAlreadyCompletedException;
 import org.example.service.exception.OrderHasReferencesException;
-import org.example.service.imp.OrderService;
 import org.example.servlet.adapter.LocalDateTimeAdapter;
 import org.example.servlet.dto.OrderCreateDTO;
 import org.example.servlet.dto.OrderPublicDTO;
@@ -23,7 +21,6 @@ import org.example.servlet.dto.OrderUpdateDTO;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -46,15 +43,11 @@ public class OrderServlet extends SimpleServlet {
 
     private static final String SPECIFIED_ORDER_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
 
-    public OrderServlet(ConnectionManager connectionManager) {
-        if (connectionManager == null)
+    public OrderServlet(IOrderService orderService) {
+        if (orderService == null)
             throw new NullParamException();
 
-        try {
-            orderService = new OrderService(connectionManager.getConnection());
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
+        this.orderService = orderService;
     }
 
     @Override
@@ -93,7 +86,7 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
-        }  catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -168,7 +161,7 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -228,7 +221,7 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format("Already exist: %s", e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
@@ -281,7 +274,7 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch(DataBaseException e){
+        } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
