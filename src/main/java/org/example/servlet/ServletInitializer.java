@@ -26,7 +26,7 @@ public class ServletInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        ConfigLoader configLoader = new ConfigLoader("D:\\Projects\\Java\\REST\\db.properties");
+        ConfigLoader configLoader = new ConfigLoader("/db.properties");
         ConnectionManager connectionManager = new ConnectionManagerImp(configLoader);
         Connection connection;
         try {

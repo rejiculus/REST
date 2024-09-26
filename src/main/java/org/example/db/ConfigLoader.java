@@ -3,10 +3,13 @@ package org.example.db;
 import org.example.entity.exception.NullParamException;
 import org.example.repository.exception.DataBaseException;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Load db's properties form file in resources folder.
+ */
 public class ConfigLoader {
     private static final Properties properties = new Properties();
 
@@ -14,8 +17,11 @@ public class ConfigLoader {
         if (path == null)
             throw new NullParamException();
 
-        try (FileInputStream fis = new FileInputStream(path)) {
-            properties.load(fis);
+        try (InputStream inputStream = ConfigLoader.class.getResourceAsStream(path)) {
+            if (inputStream != null)
+                properties.load(inputStream);
+            else
+                throw new DataBaseException(String.format("Fail to load file: %s", path));
         } catch (IOException e) {
             throw new DataBaseException(e.getMessage());
         }
@@ -23,13 +29,5 @@ public class ConfigLoader {
 
     public String getProperty(String key) {
         return properties.getProperty(key);
-    }
-
-    public int getIntProperty(String key) {
-        return Integer.parseInt(properties.getProperty(key));
-    }
-
-    public long getLongProperty(String key) {
-        return Long.parseLong(properties.getProperty(key));
     }
 }
