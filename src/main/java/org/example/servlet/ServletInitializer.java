@@ -9,6 +9,7 @@ import org.example.db.ConnectionManagerImp;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
+import org.example.repository.exception.DataBaseException;
 import org.example.repository.imp.BaristaRepositoryImp;
 import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
@@ -48,7 +49,7 @@ public class ServletInitializer implements ServletContextListener {
             sce.getServletContext().addServlet("CoffeeServlet", coffeeServlet).addMapping("/coffee/*");
             sce.getServletContext().addServlet("OrderServlet", orderServlet).addMapping("/orders/*");
 
-        } catch (SQLException e) {
+        } catch (SQLException | DataBaseException e) {
             LOGGER.severe(e.getMessage());
         }
 

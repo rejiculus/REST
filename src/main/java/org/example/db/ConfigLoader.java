@@ -18,10 +18,10 @@ public class ConfigLoader {
             throw new NullParamException();
 
         try (InputStream inputStream = ConfigLoader.class.getResourceAsStream(path)) {
-            if (inputStream != null)
-                properties.load(inputStream);
-            else
+            if (inputStream == null)
                 throw new DataBaseException(String.format("Fail to load file: %s", path));
+
+            properties.load(inputStream);
         } catch (IOException e) {
             throw new DataBaseException(e.getMessage());
         }
