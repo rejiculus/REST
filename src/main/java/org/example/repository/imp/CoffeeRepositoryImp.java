@@ -24,6 +24,14 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         this.mapper = new CoffeeMapper();
     }
 
+    /**
+     * Create Coffee in db by coffee entity.
+     *
+     * @param coffee object with coffee type.
+     * @return Coffee object with defined id.
+     * @throws NullParamException when coffee entity is null.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public Coffee create(Coffee coffee) {
         if (coffee == null)
@@ -46,6 +54,15 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Update coffee entity in db.
+     *
+     * @param coffee object with coffee type.
+     * @return updated Coffee object.
+     * @throws NullParamException      when coffee param is null.
+     * @throws CoffeeNotFoundException when coffee is not found in db.
+     * @throws DataBaseException       sql exception.
+     */
     @Override
     public Coffee update(Coffee coffee) {
         if (coffee == null)
@@ -68,6 +85,15 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Delete coffee entity by specified id.
+     *
+     * @param id deleting coffee's id.
+     * @throws NullParamException      when id param is null.
+     * @throws NoValidIdException      when id is less than zero.
+     * @throws CoffeeNotFoundException when coffee with specified id.
+     * @throws DataBaseException       sql exception.
+     */
     @Override
     public void delete(Long id) {
         if (id == null)
@@ -87,6 +113,12 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Find all coffee in db.
+     *
+     * @return list of all coffee object from db.
+     * @throws DataBaseException sql exception.
+     */
     @Override
     public List<Coffee> findAll() {
         try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL.toString())) {
@@ -100,6 +132,15 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Find coffee by id.
+     *
+     * @param id find coffee's id.
+     * @return Optional Coffee object.
+     * @throws NullParamException when id param is null.
+     * @throws NoValidIdException when id is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public Optional<Coffee> findById(Long id) {
         if (id == null)
@@ -119,6 +160,16 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Find all coffee object's grouped by page and limited.
+     *
+     * @param page  number of page. Can't be less than zero.
+     * @param limit number of maximum objects in list.
+     * @return list of all coffee object's form specified page.
+     * @throws NoValidLimitException when limit is less than one.
+     * @throws NoValidPageException  when page is less than zero.
+     * @throws DataBaseException     sql exception.
+     */
     @Override
     public List<Coffee> findAllByPage(int page, int limit) {
         if (limit <= 0)
@@ -139,6 +190,16 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Find all coffee object's coupled with specified order id.
+     *
+     * @param id order id.
+     * @return list of coffee object's
+     * @throws NullParamException      when id param is null.
+     * @throws NoValidIdException      when id is less than zero.
+     * @throws CoffeeNotFoundException when coffee with specified id is not found in db.
+     * @throws DataBaseException       sql exception.
+     */
     @Override
     public List<Coffee> findByOrderId(Long id) {
         if (id == null)
@@ -160,6 +221,14 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         }
     }
 
+    /**
+     * Delete all references coupled with coffee with specified id.
+     *
+     * @param coffeeId id that relations have to be deleted.
+     * @throws NullParamException when id param is null.
+     * @throws NoValidIdException when id is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public void deleteReferencesByCoffeeId(Long coffeeId) {
         if (coffeeId == null)

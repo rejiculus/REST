@@ -11,6 +11,7 @@ public class CoffeeMapper implements SimpleMapper<Coffee> {
 
     /**
      * Mapping result set to Coffee object.
+     *
      * @param resultSet result data from sql query.
      * @return Coffee object.
      * @throws NullParamException when some params in result set is not defined.

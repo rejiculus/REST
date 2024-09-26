@@ -21,9 +21,10 @@ public class OrderMapper implements SimpleMapper<Order> {
 
     /**
      * Mapping result set to Order object.
+     *
      * @param resultSet result data from sql query.
      * @return Order object.
-     * @throws NullParamException when required params is not defined.
+     * @throws NullParamException       when required params is not defined.
      * @throws BaristaNotFoundException when specified barista is not found in db.
      */
     @Override

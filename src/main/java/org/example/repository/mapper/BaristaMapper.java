@@ -15,6 +15,7 @@ public class BaristaMapper implements SimpleMapper<Barista> {
     /**
      * Mapping result set ot Barista object.
      * Set to order list - empty list!
+     *
      * @param resultSet result data form sql query.
      * @return Barista object.
      * @throws NullParamException when required params is not defined in result set.

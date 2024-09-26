@@ -5,6 +5,7 @@ import org.example.entity.Order;
 import org.example.entity.exception.*;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
+import org.example.repository.exception.KeyNotPresentException;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.repository.imp.CoffeeRepositoryImp;
@@ -92,6 +93,7 @@ public class CoffeeService implements ICoffeeService {
      * @throws NoValidNameException    form mapper, when coffeeDTO's name is empty.
      * @throws NoValidPriceException   from mapper, when coffeeDTO's price is NaN, Infinite or less than zero.
      * @throws CoffeeNotFoundException when coffee with this id is not found.
+     * @throws KeyNotPresentException  from addReference, when some orders in orderList is not found.
      * @throws OrderNotFoundException  when order for coffee's orderList is not found.
      */
     @Override

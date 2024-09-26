@@ -16,11 +16,11 @@ public abstract class ManyToManyRepository {
 
     /**
      * Constructor based on connection.
-     * Has methods to add and delete references between couped entity.
+     * Has methods to add and delete references between coupled entity.
      *
      * @param connection     for processing adding and deleting references between db.
-     * @param updatePairsSql sql query to update reference between couped entity.
-     * @param deletePairsSql sql query to delete reference between couped entity.
+     * @param updatePairsSql sql query to update reference between coupled entity.
+     * @param deletePairsSql sql query to delete reference between coupled entity.
      * @throws NullParamException when some of params is null.
      */
     protected ManyToManyRepository(Connection connection, String updatePairsSql, String deletePairsSql) {
@@ -33,13 +33,13 @@ public abstract class ManyToManyRepository {
     }
 
     /**
-     * Add reference between couped entity.
+     * Add reference between coupled entity.
      *
      * @param firstColumnId  id first entity specified in sql query.
      * @param secondColumnId id second entity specified in sql query.
      * @throws NullParamException     when some of params is null.
      * @throws NoValidIdException     when some of id's in less than zero.
-     * @throws KeyNotPresentException when some of specified id's is not present in couped tables.
+     * @throws KeyNotPresentException when some of specified id's is not present in coupled tables.
      * @throws DataBaseException      another sql exceptions.
      */
     public void addReference(Long firstColumnId, Long secondColumnId) {
@@ -65,7 +65,7 @@ public abstract class ManyToManyRepository {
 
 
     /**
-     * Add reference between couped entity.
+     * Add reference between coupled entity.
      *
      * @param firstColumnId  id first entity specified in sql query.
      * @param secondColumnId id second entity specified in sql query.

@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface SimpleMapper<T> {
     /**
      * Mapping result set to object with specified type.
+     *
      * @param resultSet result data from sql query.
      * @return Object with specific type.
      */
@@ -16,6 +17,7 @@ public interface SimpleMapper<T> {
 
     /**
      * Mapping result set to list of object's with specified type.
+     *
      * @param resultSet result data from sql query.
      * @return List of object with specified type.
      * @throws SQLException
@@ -30,6 +32,7 @@ public interface SimpleMapper<T> {
 
     /**
      * Mapping result set with id's to list of id's.
+     *
      * @param resultSet result data from sql query.
      * @return List of id.
      * @throws SQLException
@@ -44,6 +47,7 @@ public interface SimpleMapper<T> {
 
     /**
      * Mapping result set to optional.
+     *
      * @param resultSet result data from sql query.
      * @return Optional object: if result's set next is false - optional.empty
      * @throws SQLException

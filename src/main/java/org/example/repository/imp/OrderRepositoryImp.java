@@ -16,6 +16,9 @@ import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Class to interact with order entity in db.
+ */
 public class OrderRepositoryImp extends OrderRepository {
     private final OrderMapper mapper;
 
@@ -33,6 +36,14 @@ public class OrderRepositoryImp extends OrderRepository {
         this.mapper = mapper;
     }
 
+    /**
+     * Create order in db by order object.
+     *
+     * @param order reference to created object.
+     * @return Order object with specified id.
+     * @throws NullParamException when 'order' param is null or if order's created field is null.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public Order create(Order order) {
         if (order == null)
@@ -66,6 +77,15 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Update Order in db by specified entity.
+     *
+     * @param order reference to created object.
+     * @return updated order object.
+     * @throws NullParamException     when 'order' param is null or if order's created field is null.
+     * @throws OrderNotFoundException when order with specified id is not found in db.
+     * @throws DataBaseException      sql exception.
+     */
     @Override
     public Order update(Order order) {
         if (order == null)
@@ -96,6 +116,15 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Delete order with specified id.
+     *
+     * @param id deleting order's id.
+     * @throws NullParamException     when id is null.
+     * @throws NoValidIdException     when id is less than zero.
+     * @throws OrderNotFoundException when order with specified id is not found in db.
+     * @throws DataBaseException      sql exception.
+     */
     @Override
     public void delete(Long id) {
         if (id == null)
@@ -114,6 +143,12 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Find all orders in db.
+     *
+     * @return list of all orders from db.
+     * @throws DataBaseException sql exception.
+     */
     @Override
     public List<Order> findAll() {
         try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL.toString())) {
@@ -126,6 +161,15 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Find order with specified id.
+     *
+     * @param id order's id.
+     * @return Optional order object.
+     * @throws NullParamException when id is null.
+     * @throws NoValidIdException when id is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public Optional<Order> findById(Long id) {
         if (id == null)
@@ -145,6 +189,15 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Find all orders with specific barista's id.
+     *
+     * @param baristaId barista id.
+     * @return list of orders with specified barista.
+     * @throws NullParamException when baristaId is null.
+     * @throws NoValidIdException when baristaId is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public List<Order> findByBaristaId(Long baristaId) {
         if (baristaId == null)
@@ -165,6 +218,16 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Find all order grouped by page and limited.
+     *
+     * @param page  number of page. Can't be less than zero.
+     * @param limit number of maximum objects in list.
+     * @return list of order in specified page.
+     * @throws NoValidLimitException when limit is less than one.
+     * @throws NoValidPageException  when page is less than zero.
+     * @throws DataBaseException     sql exception.
+     */
     @Override
     public List<Order> findAllByPage(int page, int limit) {
         if (limit <= 0)
@@ -184,6 +247,14 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Set default barista to order with specified id.
+     *
+     * @param orderId updated order's id.
+     * @throws NullParamException when orderId is null.
+     * @throws NoValidIdException when orderId is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public void setBaristaDefault(Long orderId) {
         if (orderId == null)
@@ -200,6 +271,16 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+    /**
+     * Find all order by specified coffee id.
+     *
+     * @param id coffee id.
+     * @return list of order object's that contains specified coffee.
+     * @throws NullParamException     when id is null.
+     * @throws NoValidIdException     when id is less than zero.
+     * @throws OrderNotFoundException when order with specified id is not found in db.
+     * @throws DataBaseException      sql exception.
+     */
     @Override
     public List<Order> findByCoffeeId(Long id) {
         if (id == null)
@@ -222,6 +303,15 @@ public class OrderRepositoryImp extends OrderRepository {
         }
     }
 
+
+    /**
+     * Delete references between orders and coffees by specified order id.
+     *
+     * @param orderId id that relations have to be deleted.
+     * @throws NullParamException when orderId is null.
+     * @throws NoValidIdException when orderId is less than zero.
+     * @throws DataBaseException  sql exception.
+     */
     @Override
     public void deletePairsByOrderId(Long orderId) {
         if (orderId == null)
