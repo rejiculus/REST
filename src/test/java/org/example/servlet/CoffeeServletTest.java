@@ -18,6 +18,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -111,6 +114,25 @@ class CoffeeServletTest {
 
         Mockito.verify(writer).write(anyString());
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = ':', value = {"0:0", "-1:1", "0:-1", "name:1", "1:name"})
+    void testDoGetFindAllByPageBadReq(String page, String limit) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        PrintWriter writer = mock(PrintWriter.class);
+
+        when(request.getPathInfo())
+                .thenReturn("/");
+        when(response.getWriter())
+                .thenReturn(writer);
+        when(request.getParameterMap())
+                .thenReturn(Map.of("page", new String[]{page}, "limit", new String[]{limit}));
+
+        coffeeServlet.doGet(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
     @Test
@@ -228,6 +250,7 @@ class CoffeeServletTest {
         Mockito.verify(response, times(2)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
+
     @Test
     void testDoPutUpdate() throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
@@ -255,11 +278,53 @@ class CoffeeServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
+    @ParameterizedTest
+    @CsvSource(delimiter = ':', value = {
+            "\"\":300.0:[]",
+            "Name:-300.0:[]",
+            "Name:NaN:[]",
+            "Name:name:[]",
+            "Name:200.0:[0]",
+            "Name:200.0:[name]"
+    })
+    void testDoPutBadRequest(String name, String price, String orders) throws IOException {
+        HttpServletRequest badRequest = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        String specifiedJson = String.format("""
+                {
+                "name":%s,
+                "price":%s,
+                "orderIdList":%s
+                }
+                """, name, price, orders);
+        BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
+
+        when(badRequest.getPathInfo())
+                .thenReturn("/1");
+        when(badRequest.getReader())
+                .thenReturn(bufferedReader);
+
+        coffeeServlet.doPut(badRequest, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/1/1", "", "/name", "1", "/-1"})
+    void testDoPutBadRequestPath(String path) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        when(request.getPathInfo())
+                .thenReturn(path);
+
+        coffeeServlet.doPut(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
     @Test
-    void testDoPutBadRequestCreate() throws IOException {
-        HttpServletRequest request1 = mock(HttpServletRequest.class);
-        HttpServletRequest request0 = mock(HttpServletRequest.class);
-        HttpServletRequest request2 = mock(HttpServletRequest.class);
+    void testDoPutNotFound() throws IOException {
         HttpServletRequest requestNotFound = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         String specifiedJson = """
@@ -271,22 +336,14 @@ class CoffeeServletTest {
                 """;
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
 
-        when(request1.getPathInfo())
-                .thenReturn("/");
-        when(request2.getPathInfo())
-                .thenReturn("/1/1");
         when(requestNotFound.getPathInfo())
                 .thenReturn("/99");
         when(requestNotFound.getReader())
                 .thenReturn(bufferedReader);
 
-        coffeeServlet.doPut(request0, response);
-        coffeeServlet.doPut(request1, response);
-        coffeeServlet.doPut(request2, response);
         coffeeServlet.doPut(requestNotFound, response);
 
-        Mockito.verify(response, times(3)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
-        Mockito.verify(response, times(1)).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
     }
 
 
@@ -307,28 +364,32 @@ class CoffeeServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/1/1", "/-1", "/name", ""})
+    void testDoDeleteBadRequestCreate(String path) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        when(request.getPathInfo())
+                .thenReturn(path);
+
+        coffeeServlet.doDelete(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/1/1", "/-1", "/name", ""})
     void testDoDeleteBadRequestCreate() throws IOException {
-        HttpServletRequest request1 = mock(HttpServletRequest.class);
-        HttpServletRequest request0 = mock(HttpServletRequest.class);
-        HttpServletRequest request2 = mock(HttpServletRequest.class);
         HttpServletRequest requestNotFound = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        when(request1.getPathInfo())
-                .thenReturn("/");
-        when(request2.getPathInfo())
-                .thenReturn("/1/1");
         when(requestNotFound.getPathInfo())
                 .thenReturn("/99/");
 
-        coffeeServlet.doDelete(request0, response);
-        coffeeServlet.doDelete(request1, response);
-        coffeeServlet.doDelete(request2, response);
         coffeeServlet.doDelete(requestNotFound, response);
 
-        Mockito.verify(response, times(3)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
-        Mockito.verify(response, times(1)).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
     }
 
 }

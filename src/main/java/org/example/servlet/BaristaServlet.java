@@ -182,7 +182,8 @@ public class BaristaServlet extends SimpleServlet {
             }
 
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
-                 NullParamException | NumberFormatException | JsonMappingException e) {
+                 NullParamException | NumberFormatException | JsonMappingException |
+                 JsonSyntaxException | OrderNotFoundException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);

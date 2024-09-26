@@ -9,7 +9,6 @@ import org.example.db.ConnectionManagerImp;
 import org.example.repository.BaristaRepository;
 import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
-import org.example.repository.exception.DataBaseException;
 import org.example.repository.imp.BaristaRepositoryImp;
 import org.example.repository.imp.CoffeeRepositoryImp;
 import org.example.repository.imp.OrderRepositoryImp;
@@ -19,14 +18,17 @@ import org.example.service.imp.OrderService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 @WebListener
 public class ServletInitializer implements ServletContextListener {
+    private static final Logger LOGGER = Logger.getLogger(ServletInitializer.class.getName());
+
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ConfigLoader configLoader = new ConfigLoader("D:\\Projects\\Java\\REST\\db.properties");
         ConnectionManager connectionManager = new ConnectionManagerImp(configLoader);
-        Connection connection = null;
+        Connection connection;
         try {
             connection = connectionManager.getConnection();
 
@@ -47,7 +49,7 @@ public class ServletInitializer implements ServletContextListener {
             sce.getServletContext().addServlet("OrderServlet", orderServlet).addMapping("/orders/*");
 
         } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
+            LOGGER.severe(e.getMessage());
         }
 
 

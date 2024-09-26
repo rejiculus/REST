@@ -18,6 +18,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -112,16 +115,35 @@ class BaristaServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
+    @ParameterizedTest
+    @CsvSource(delimiter = ':', value = {"0:0", "-1:1", "0:-1", "name:1", "1:name"})
+    void testDoGetFindAllByPageWrong(String page, String limit) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        PrintWriter writer = mock(PrintWriter.class);
+
+        when(request.getPathInfo())
+                .thenReturn("/");
+        when(response.getWriter())
+                .thenReturn(writer);
+        when(request.getParameterMap())
+                .thenReturn(Map.of("page", new String[]{page}, "limit", new String[]{limit}));
+
+        baristaServlet.doGet(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
     @Test
     void testDoGetFindById() throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);
 
-        baristaRepository.create(new Barista("John Doe"));
+        Barista barista = baristaRepository.create(new Barista("John Doe"));
 
         when(request.getPathInfo())
-                .thenReturn("/1");
+                .thenReturn("/" + barista.getId());
         when(response.getWriter())
                 .thenReturn(writer);
 
@@ -131,8 +153,9 @@ class BaristaServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
-    @Test
-    void testDoGetWrong() throws IOException {
+    @ParameterizedTest
+    @ValueSource(strings = {"-1", "naemwlrkw"})
+    void testDoGetWrong(String id) throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);
@@ -140,7 +163,7 @@ class BaristaServletTest {
         baristaRepository.create(new Barista("John Doe"));
 
         when(request.getPathInfo())
-                .thenReturn("/1qsdsfd/");
+                .thenReturn("/" + id);
         when(response.getWriter())
                 .thenReturn(writer);
 
@@ -164,23 +187,6 @@ class BaristaServletTest {
         baristaServlet.doGet(request, response);
 
         Mockito.verify(response).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
-    }
-
-    @Test
-    void testDoGetWrongId() throws IOException {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        PrintWriter writer = mock(PrintWriter.class);
-
-
-        when(request.getPathInfo())
-                .thenReturn("/-1/");
-        when(response.getWriter())
-                .thenReturn(writer);
-
-        baristaServlet.doGet(request, response);
-
-        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
     @Test
@@ -208,21 +214,18 @@ class BaristaServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_CREATED);
     }
 
-    @Test
-    void testDoPostBadRequestCreate() throws IOException {
-        HttpServletRequest request1 = mock(HttpServletRequest.class);
-        HttpServletRequest request2 = mock(HttpServletRequest.class);
+    @ParameterizedTest
+    @ValueSource(strings = {"/1", "/1/1", "/name", "/1a"})
+    void testDoPostBadRequestCreate(String path) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        when(request1.getPathInfo())
-                .thenReturn("/1");
-        when(request2.getPathInfo())
-                .thenReturn("/1/1");
+        when(request.getPathInfo())
+                .thenReturn(path);
 
-        baristaServlet.doPost(request1, response);
-        baristaServlet.doPost(request2, response);
+        baristaServlet.doPost(request, response);
 
-        Mockito.verify(response, times(2)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
     @Test
@@ -251,17 +254,25 @@ class BaristaServletTest {
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
-    @Test
-    void testDoPutUpdateWrong() throws IOException {
+    @ParameterizedTest
+    @CsvSource(delimiter = ':', value = {
+            "bbb:-0.2:[]",
+            "\"\":0.2:[]",
+            "SOmeName:0.2:[name]",
+            "SOmeName:NaN:[]",
+            "SOmeName:0.2:[0]"
+
+    })
+    void testDoPutUpdateBadReq(String fullName, String tipSize, String orderIdList) throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);
-        String specifiedJson = """
+        String specifiedJson = String.format("""
                 {
-                    "fullName": "bbb",
-                    "tipSize": -0.2,
-                    "orderIdList": []
-                }""";
+                    "fullName": %s,
+                    "tipSize": %s,
+                    "orderIdList": %s
+                }""", fullName, tipSize, orderIdList);
         BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
         Barista barista = baristaRepository.create(new Barista("John Doe"));
 
@@ -277,89 +288,59 @@ class BaristaServletTest {
         Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
-    @Test
-    void testDoPutUpdateWrong2() throws IOException {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "/1/1", "/name", "/1a"})
+    void testDoPutBadRequestUpdate(String path) throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
-        PrintWriter writer = mock(PrintWriter.class);
-        String specifiedJson = """
-                {
-                    "fullName": "",
-                    "tipSize": 0.2,
-                    "orderIdList": []
-                }""";
-        BufferedReader bufferedReader = Mockito.spy(new BufferedReader(new StringReader(specifiedJson)));
-        Barista barista = baristaRepository.create(new Barista("John Doe"));
 
-        when(request.getReader())
-                .thenReturn(bufferedReader);
         when(request.getPathInfo())
-                .thenReturn("/" + barista.getId());
-        when(response.getWriter())
-                .thenReturn(writer);
+                .thenReturn(path);
 
         baristaServlet.doPut(request, response);
 
         Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
-    }
-
-    @Test
-    void testDoPutBadRequestCreate() throws IOException {
-        HttpServletRequest request1 = mock(HttpServletRequest.class);
-        HttpServletRequest request0 = mock(HttpServletRequest.class);
-        HttpServletRequest request2 = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-
-        when(request1.getPathInfo())
-                .thenReturn("/");
-        when(request2.getPathInfo())
-                .thenReturn("/1/1");
-
-        baristaServlet.doPut(request0, response);
-        baristaServlet.doPut(request1, response);
-        baristaServlet.doPut(request2, response);
-
-        Mockito.verify(response, times(3)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
     }
 
     @Test
     void testDoDelete() throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
-        PrintWriter writer = mock(PrintWriter.class);
-        baristaRepository.create(new Barista("John Doe"));
+        Barista barista = baristaRepository.create(new Barista("John Doe"));
 
         when(request.getPathInfo())
-                .thenReturn("/1");
-        when(response.getWriter())
-                .thenReturn(writer);
+                .thenReturn("/" + barista.getId());
 
         baristaServlet.doDelete(request, response);
 
         Mockito.verify(response).setStatus(HttpServletResponse.SC_OK);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/1/1", "/-1", "/name", ""})
+    void testDoDeleteBadRequest(String path) throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        when(request.getPathInfo())
+                .thenReturn(path);
+
+        baristaServlet.doDelete(request, response);
+
+        Mockito.verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
+    }
+
     @Test
-    void testDoDeleteBadRequestCreate() throws IOException {
-        HttpServletRequest request1 = mock(HttpServletRequest.class);
-        HttpServletRequest request0 = mock(HttpServletRequest.class);
-        HttpServletRequest request2 = mock(HttpServletRequest.class);
+    void testDoDeleteNotFound() throws IOException {
         HttpServletRequest requestNotFound = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        when(request1.getPathInfo())
-                .thenReturn("/");
-        when(request2.getPathInfo())
-                .thenReturn("/1/1");
         when(requestNotFound.getPathInfo())
                 .thenReturn("/99/");
 
-        baristaServlet.doDelete(request0, response);
-        baristaServlet.doDelete(request1, response);
-        baristaServlet.doDelete(request2, response);
         baristaServlet.doDelete(requestNotFound, response);
 
-        Mockito.verify(response, times(3)).sendError(eq(HttpServletResponse.SC_BAD_REQUEST), any());
         Mockito.verify(response, times(1)).sendError(eq(HttpServletResponse.SC_NOT_FOUND), any());
     }
 

@@ -153,13 +153,10 @@ public class OrderServlet extends SimpleServlet {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException | NullParamException |
-                 JsonMappingException | JsonSyntaxException e) {
+                 JsonMappingException | JsonSyntaxException | CoffeeNotFoundException |
+                 BaristaNotFoundException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
-        } catch (CoffeeNotFoundException | BaristaNotFoundException e) {
-            String message = String.format(NOT_FOUND, e.getMessage());
-            LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
@@ -214,7 +211,7 @@ public class OrderServlet extends SimpleServlet {
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
         } catch (OrderNotFoundException e) {
-            String message = String.format(BAD_PATH, e.getMessage());
+            String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
         } catch (OrderAlreadyCompletedException e) {
