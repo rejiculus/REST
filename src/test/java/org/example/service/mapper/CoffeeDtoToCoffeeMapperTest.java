@@ -52,7 +52,7 @@ class CoffeeDtoToCoffeeMapperTest {
         assertEquals("Frappuchinno", resultCoffee.getName());
         assertEquals(0.1, resultCoffee.getPrice());
         assertEquals(List.of(), resultCoffee.getOrderList());
-        assertThrows(NoValidIdException.class, () -> resultCoffee.getId());
+        assertThrows(NoValidIdException.class, resultCoffee::getId);
     }
 
     @Test

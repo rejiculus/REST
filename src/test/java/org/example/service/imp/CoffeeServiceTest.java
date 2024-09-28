@@ -6,7 +6,6 @@ import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.service.mapper.CoffeeDtoToCoffeeMapper;
 import org.example.servlet.dto.CoffeeCreateDTO;
 import org.example.servlet.dto.CoffeeUpdateDTO;
 import org.junit.jupiter.api.*;
@@ -17,7 +16,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.MountableFile;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +28,6 @@ class CoffeeServiceTest {
             .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
                     "/docker-entrypoint-initdb.d/01-schema.sql");
     static AutoCloseable mocks;
-    @Mock
-    static CoffeeDtoToCoffeeMapper mapper;
     @Mock
     CoffeeRepository coffeeRepository;
     @Mock
@@ -61,12 +57,9 @@ class CoffeeServiceTest {
 
     @Test
     void constructorsTest() {
-        Connection connection = Mockito.mock(Connection.class);
         Assertions.assertDoesNotThrow(() -> new CoffeeService(orderRepository, coffeeRepository));
-        Assertions.assertDoesNotThrow(() -> new CoffeeService(connection));
         Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(orderRepository, null));
         Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(null, coffeeRepository));
-        Assertions.assertThrows(NullParamException.class, () -> new CoffeeService(null));
     }
 
     @Test

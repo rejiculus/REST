@@ -6,6 +6,8 @@ import org.example.entity.exception.NoValidTipSizeException;
 import org.example.entity.exception.NullParamException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BaristaTest {
     Random random = new Random();
 
+    //all param constructor
     @Test
     void allParamConstructorTest() {
         Long expectedId = 0L;
@@ -32,31 +35,40 @@ class BaristaTest {
     }
 
     @Test
-    void allParamConstructorWrongTest() {
+    void allParamConstructorNullParamExceptionTest() {
         ArrayList<Order> inputOrders = new ArrayList<>();
         Assertions.assertThrows(NullParamException.class, () -> new Barista(null, "John Doe", inputOrders, 0.3));
         Assertions.assertThrows(NullParamException.class, () -> new Barista(0L, null, inputOrders, 0.3));
         Assertions.assertThrows(NullParamException.class, () -> new Barista(0L, "John Doe", null, 0.3));
         Assertions.assertThrows(NullParamException.class, () -> new Barista(0L, "John Doe", inputOrders, null));
+    }
 
-        //
+    @Test
+    void allParamConstructorNoValidIdTest() {
+        ArrayList<Order> inputOrders = new ArrayList<>();
         for (int i = -5; i < 5; i++) {
             long finalI = i;
             if (i < 0) {
                 Assertions.assertThrows(NoValidIdException.class, () -> new Barista(finalI, "John Doe", inputOrders, 0.3));
             } else Assertions.assertDoesNotThrow(() -> new Barista(finalI, "John Doe", inputOrders, 0.3));
         }
-
-        Assertions.assertThrows(NoValidNameException.class, () -> new Barista(0L, "", inputOrders, 0.3));
-
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista(0L, "John Doe", inputOrders, -0.3));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista(0L, "John Doe", inputOrders, Double.NaN));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista(0L, "John Doe", inputOrders, Double.POSITIVE_INFINITY));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista(0L, "John Doe", inputOrders, Double.NEGATIVE_INFINITY));
-
-
     }
 
+    @Test
+    void allParamConstructorNoValidNameTest() {
+        ArrayList<Order> inputOrders = new ArrayList<>();
+
+        Assertions.assertThrows(NoValidNameException.class, () -> new Barista(0L, "", inputOrders, 0.3));
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {Double.NaN, -0.3, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
+    void allParamConstructorNoValidTipSizeTest(Double tipSize) {
+        ArrayList<Order> inputOrders = new ArrayList<>();
+        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista(0L, "John Doe", inputOrders, tipSize));
+    }
+
+    // name - tip constructor
     @Test
     void constructorTipTest() {
         String expectedFullName = "John Doe";
@@ -64,34 +76,37 @@ class BaristaTest {
 
         Barista barista = new Barista(expectedFullName, expectedTipSize);
 
-        assertThrows(NoValidIdException.class, () -> barista.getId());
+        assertThrows(NoValidIdException.class, barista::getId);
         assertEquals(expectedFullName, barista.getFullName());
         assertEquals(new ArrayList<>(), barista.getOrderList());
         assertEquals(expectedTipSize, barista.getTipSize());
     }
 
     @Test
-    void constructorTipWrongTest() {
+    void constructorTipNullTest() {
         Assertions.assertThrows(NullParamException.class, () -> new Barista(null, 0.3));
-        Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (Double) null));//heh)
-
-        Assertions.assertThrows(NoValidNameException.class, () -> new Barista("", 0.3));
-
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", -0.3));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.NaN));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.POSITIVE_INFINITY));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.NEGATIVE_INFINITY));
-
-
+        Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (Double) null));
     }
 
+    @Test
+    void constructorTipNoValidNameTest() {
+        Assertions.assertThrows(NoValidNameException.class, () -> new Barista("", 0.3));
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {Double.NaN, -0.3, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
+    void constructorTipNoValidTipSizeTest(Double tipSize) {
+        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", tipSize));
+    }
+
+    // name - orders constructor
     @Test
     void constructorOrdersTest() {
         String expectedFullName = "John Doe";
         List<Order> expectedOrderList = new ArrayList<>();
         Barista barista = new Barista(expectedFullName, expectedOrderList);
 
-        assertThrows(NoValidIdException.class, () -> barista.getId());
+        assertThrows(NoValidIdException.class, barista::getId);
         assertEquals(expectedFullName, barista.getFullName());
         assertEquals(expectedOrderList, barista.getOrderList());
         assertEquals(0.1, barista.getTipSize());
@@ -101,17 +116,18 @@ class BaristaTest {
     void constructorOrdersWrongTest() {
         List<Order> orders = new ArrayList<>();
         Assertions.assertThrows(NullParamException.class, () -> new Barista(null, orders));
-        Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (List<Order>) null));//heh)
+        Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (List<Order>) null));
 
         Assertions.assertThrows(NoValidNameException.class, () -> new Barista("", 0.3));
     }
 
+    // name constructor
     @Test
     void constructorTest() {
         String expectedFullName = "John Doe";
         Barista barista = new Barista(expectedFullName);
 
-        assertThrows(NoValidIdException.class, () -> barista.getId());
+        assertThrows(NoValidIdException.class, barista::getId);
         assertEquals(expectedFullName, barista.getFullName());
         assertEquals(new ArrayList<Order>(), barista.getOrderList());
         assertEquals(0.1, barista.getTipSize());
@@ -153,6 +169,7 @@ class BaristaTest {
             else
                 Assertions.assertDoesNotThrow(() -> barista.setId(finalI));
         }
+        Assertions.assertThrows(NullParamException.class, () -> barista.setId(null));
     }
 
     @Test
@@ -162,18 +179,13 @@ class BaristaTest {
         assertEquals(expectedFullName, barista.getFullName());
     }
 
-    @Test
-    void setFullNameTest() {
+    @ParameterizedTest
+    @ValueSource(strings = {"Kizaru", "Alabasta", "Island"})
+    void setFullNameTest(String fullName) {
         Barista barista = new Barista("John Doe", 0.1);
 
-        barista.setFullName("Kizaru");
-        assertEquals("Kizaru", barista.getFullName());
-
-        barista.setFullName("Alabasta");
-        assertEquals("Alabasta", barista.getFullName());
-
-        barista.setFullName("Island");
-        assertEquals("Island", barista.getFullName());
+        barista.setFullName(fullName);
+        assertEquals(fullName, barista.getFullName());
     }
 
     @Test
@@ -203,7 +215,7 @@ class BaristaTest {
 
         assertEquals(orders, barista.getOrderList());
 
-        orders.remove(0);
+        orders.removeFirst();
 
         assertNotEquals(orders, barista.getOrderList());
 
@@ -235,13 +247,16 @@ class BaristaTest {
         }
     }
 
-    @Test
-    void setWrongTipSizeTest() {
+    @ParameterizedTest
+    @ValueSource(doubles = {Double.NaN, -0.3, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
+    void setNoValidTipSizeTest(Double tipSizeTest) {
         Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (Double) null));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", -0.0001));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.NEGATIVE_INFINITY));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.POSITIVE_INFINITY));
-        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", Double.NaN));
+        Assertions.assertThrows(NoValidTipSizeException.class, () -> new Barista("John Doe", tipSizeTest));
+    }
+
+    @Test
+    void setNullTipSizeTest() {
+        Assertions.assertThrows(NullParamException.class, () -> new Barista("John Doe", (Double) null));
     }
 
     @Test

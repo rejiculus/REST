@@ -33,8 +33,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -57,15 +55,14 @@ class OrderServletTest {
     private static BaristaRepository baristaRepository;
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
 
-        orderRepository = new OrderRepositoryImp(connection);
-        baristaRepository = new BaristaRepositoryImp(connection);
-        CoffeeRepository coffeeRepository = new CoffeeRepositoryImp(connection);
+        orderRepository = new OrderRepositoryImp(connectionManager);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
+        CoffeeRepository coffeeRepository = new CoffeeRepositoryImp(connectionManager);
 
         IOrderService orderService = new OrderService(baristaRepository, coffeeRepository, orderRepository);
 

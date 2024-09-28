@@ -45,7 +45,7 @@ class BaristaDtoToBaristaMapperTest {
         assertEquals("John Doe", resultBarista.getFullName());
         assertEquals(0.5, resultBarista.getTipSize());
         assertEquals(List.of(), resultBarista.getOrderList());
-        assertThrows(NoValidIdException.class, () -> resultBarista.getId());
+        assertThrows(NoValidIdException.class, resultBarista::getId);
     }
 
     @Test

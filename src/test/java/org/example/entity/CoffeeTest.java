@@ -65,7 +65,7 @@ class CoffeeTest {
 
         Coffee coffee = new Coffee(expectedName, expectedPrice);
 
-        assertThrows(NoValidIdException.class, () -> coffee.getId());
+        assertThrows(NoValidIdException.class, coffee::getId);
         assertEquals(expectedName, coffee.getName());
         assertEquals(expectedPrice, coffee.getPrice());
         assertEquals(new ArrayList<>(), coffee.getOrderList());
@@ -195,7 +195,7 @@ class CoffeeTest {
 
         assertEquals(orders, coffee.getOrderList());
 
-        orders.remove(0);
+        orders.removeFirst();
 
         assertNotEquals(orders, coffee.getOrderList());
 

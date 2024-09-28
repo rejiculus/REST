@@ -12,18 +12,14 @@ import org.example.repository.CoffeeRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.repository.mapper.OrderMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.MountableFile;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OrderRepositoryImpTest {
     static ConnectionManager connectionManager;
-    static OrderMapper mapper;
     static OrderRepository orderRepository;
     static BaristaRepository baristaRepository;
     static CoffeeRepository coffeeRepository;
@@ -44,17 +39,14 @@ class OrderRepositoryImpTest {
 
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
 
-        mapper = Mockito.spy(new OrderMapper(new BaristaRepositoryImp(connection)));
-
-        baristaRepository = new BaristaRepositoryImp(connection);
-        orderRepository = new OrderRepositoryImp(connection, mapper);
-        coffeeRepository = new CoffeeRepositoryImp(connection);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
+        orderRepository = new OrderRepositoryImp(connectionManager);
+        coffeeRepository = new CoffeeRepositoryImp(connectionManager);
 
     }
 
@@ -66,11 +58,8 @@ class OrderRepositoryImpTest {
 
     @Test
     void constructorsTest() {
-        Connection connection = Mockito.mock(Connection.class);
-        Assertions.assertDoesNotThrow(() -> new OrderRepositoryImp(connectionManager.getConnection(), mapper));
-        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(null, mapper));
-        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(connection, null));
-        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(null, null));
+        Assertions.assertDoesNotThrow(() -> new OrderRepositoryImp(connectionManager));
+        Assertions.assertThrows(NullParamException.class, () -> new OrderRepositoryImp(null));
     }
 
     @Test

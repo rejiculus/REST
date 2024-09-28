@@ -30,8 +30,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -50,14 +48,13 @@ class BaristaServletTest {
     private static BaristaRepository baristaRepository;
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
 
-        baristaRepository = new BaristaRepositoryImp(connection);
-        OrderRepository orderRepository = new OrderRepositoryImp(connection);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
+        OrderRepository orderRepository = new OrderRepositoryImp(connectionManager);
         IBaristaService baristaService = new BaristaService(baristaRepository, orderRepository);
 
         baristaServlet = new BaristaServlet(baristaService);

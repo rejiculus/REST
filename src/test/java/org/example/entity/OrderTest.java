@@ -80,14 +80,14 @@ class OrderTest {
         Order order = new Order(expectedBarista, expectedCoffeeList);
         Order order2 = new Order(expectedBarista, expectedCoffeeList, specifiedDateTime);
 
-        assertThrows(NoValidIdException.class, () -> order.getId());
+        assertThrows(NoValidIdException.class, order::getId);
         assertEquals(expectedBarista, order.getBarista());
         assertEquals(expectedCoffeeList, order.getCoffeeList());
         assertNull(order.getCreated());
         assertNull(order.getCompleted());
         assertEquals(0.0, order.getPrice());
 
-        assertThrows(NoValidIdException.class, () -> order2.getId());
+        assertThrows(NoValidIdException.class, order2::getId);
         assertEquals(expectedBarista, order2.getBarista());
         assertEquals(expectedCoffeeList, order2.getCoffeeList());
         assertEquals(specifiedDateTime, order2.getCreated());
@@ -172,7 +172,7 @@ class OrderTest {
     void setBaristaTest() {
         Barista inputBarista = new Barista("John Doe");
         Barista expectedBarista = new Barista("Nope");
-        expectedBarista.setId(10l);
+        expectedBarista.setId(10L);
         List<Coffee> expectedCoffeeList = new ArrayList<>(List.of(
                 new Coffee("Frapuchino", 999.9),
                 new Coffee("Frapuchino bez cofe", 999.9)
@@ -226,7 +226,7 @@ class OrderTest {
         order.setCoffeeList(expectedCoffeeList);
         assertEquals(expectedCoffeeList, order.getCoffeeList());
 
-        expectedCoffeeList.remove(0);
+        expectedCoffeeList.removeFirst();
         assertNotEquals(expectedCoffeeList, order.getCoffeeList());
 
     }

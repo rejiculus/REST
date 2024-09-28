@@ -19,8 +19,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.MountableFile;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,15 +34,14 @@ class ManyToManyRepositoryTest {
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
 
-        baristaRepository = new BaristaRepositoryImp(connection);
-        orderRepository = new OrderRepositoryImp(connection);
-        coffeeRepository = new CoffeeRepositoryImp(connection);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
+        orderRepository = new OrderRepositoryImp(connectionManager);
+        coffeeRepository = new CoffeeRepositoryImp(connectionManager);
     }
 
     @AfterAll

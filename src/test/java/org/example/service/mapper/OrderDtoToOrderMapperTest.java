@@ -65,7 +65,7 @@ class OrderDtoToOrderMapperTest {
 
         Order resultOrder = mapper.map(specifiedOrderDTO);
 
-        assertThrows(NoValidIdException.class, () -> resultOrder.getId());
+        assertThrows(NoValidIdException.class, resultOrder::getId);
         assertEquals(specifiedBarista, resultOrder.getBarista());
         assertEquals(List.of(specifiedCoffee1, specifiedCoffee2), resultOrder.getCoffeeList());
         assertEquals(0.0, resultOrder.getPrice());

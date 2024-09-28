@@ -22,8 +22,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -41,14 +39,13 @@ class CoffeeRepositoryImpTest {
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
-        coffeeRepository = new CoffeeRepositoryImp(connection);
-        orderRepository = new OrderRepositoryImp(connection);
-        baristaRepository = new BaristaRepositoryImp(connection);
+        coffeeRepository = new CoffeeRepositoryImp(connectionManager);
+        orderRepository = new OrderRepositoryImp(connectionManager);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
     }
 
     @AfterAll
@@ -57,10 +54,9 @@ class CoffeeRepositoryImpTest {
     }
 
     @Test
-    void constructorsTest() throws SQLException {
+    void constructorsTest() {
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
-        Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connection));
+        Assertions.assertDoesNotThrow(() -> new CoffeeRepositoryImp(connectionManager));
         Assertions.assertThrows(NullParamException.class, () -> new CoffeeRepositoryImp(null));
     }
 

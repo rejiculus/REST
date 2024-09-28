@@ -18,8 +18,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +34,11 @@ class BaristaRepositoryImpTest {
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 
     @BeforeAll
-    static void beforeAll() throws SQLException {
+    static void beforeAll() {
         postgres.start();
 
         ConnectionManager connectionManager = new ConnectionManagerImp(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        Connection connection = connectionManager.getConnection();
-        baristaRepository = new BaristaRepositoryImp(connection);
+        baristaRepository = new BaristaRepositoryImp(connectionManager);
     }
 
     @AfterAll
@@ -102,7 +99,6 @@ class BaristaRepositoryImpTest {
 
     @Test
     void deleteWrongTest() {
-
         Assertions.assertThrows(BaristaNotFoundException.class, () -> baristaRepository.delete(99L));
         Assertions.assertThrows(NoValidIdException.class, () -> baristaRepository.delete(-1L));
         Assertions.assertThrows(NullParamException.class, () -> baristaRepository.delete(null));

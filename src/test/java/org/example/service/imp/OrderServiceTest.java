@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -64,10 +63,7 @@ class OrderServiceTest {
 
     @Test
     void constructorsTest() {
-        Connection connection = Mockito.mock(Connection.class);
         Assertions.assertDoesNotThrow(() -> new OrderService(baristaRepository, coffeeRepository, orderRepository));
-        Assertions.assertDoesNotThrow(() -> new OrderService(connection));
-        Assertions.assertThrows(NullParamException.class, () -> new OrderService(null));
         Assertions.assertThrows(NullParamException.class, () -> new OrderService(null, coffeeRepository, orderRepository));
         Assertions.assertThrows(NullParamException.class, () -> new OrderService(baristaRepository, null, orderRepository));
         Assertions.assertThrows(NullParamException.class, () -> new OrderService(baristaRepository, coffeeRepository, null));
@@ -141,7 +137,7 @@ class OrderServiceTest {
             order.setId((long) i);
             order.setCreated(LocalDateTime.now());
             if (i % 2 == 0)
-                order.setCompleted(LocalDateTime.now().plusMinutes(i * 3 + 1));
+                order.setCompleted(LocalDateTime.now().plusMinutes(i * 3L + 1));
 
             specifiedOrderList.set(i, order);
         }
@@ -176,7 +172,7 @@ class OrderServiceTest {
         for (int i = 0; i < specifiedOrderList.size(); i++) {
             Order order = specifiedOrderList.get(i);
             order.setCreated(LocalDateTime.now());
-            order.setCompleted(LocalDateTime.now().plusMinutes(i * 3 + 1));
+            order.setCompleted(LocalDateTime.now().plusMinutes(i * 3L + 1));
 
             specifiedOrderList.set(i, order);
         }
