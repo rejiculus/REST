@@ -33,7 +33,7 @@ class OrderRepositoryImpTest {
     static CoffeeRepository coffeeRepository;
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine3.20")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
             .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
                     "/docker-entrypoint-initdb.d/01-schema.sql");
 

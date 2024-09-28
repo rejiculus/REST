@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CoffeeServiceTest {
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine3.20")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
             .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
                     "/docker-entrypoint-initdb.d/01-schema.sql");
     static AutoCloseable mocks;

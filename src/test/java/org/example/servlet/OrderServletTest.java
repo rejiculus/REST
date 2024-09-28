@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 class OrderServletTest {
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:alpine3.20")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
             .withDatabaseName("postgres")
             .withUsername("postgres")
             .withPassword("postgres")
