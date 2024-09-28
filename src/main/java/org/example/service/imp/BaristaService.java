@@ -7,14 +7,11 @@ import org.example.repository.BaristaRepository;
 import org.example.repository.OrderRepository;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.repository.imp.BaristaRepositoryImp;
-import org.example.repository.imp.OrderRepositoryImp;
 import org.example.service.IBaristaService;
 import org.example.service.dto.IBaristaCreateDTO;
 import org.example.service.dto.IBaristaUpdateDTO;
 import org.example.service.mapper.BaristaDtoToBaristaMapper;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,22 +36,6 @@ public class BaristaService implements IBaristaService {
 
         this.baristaRepository = baristaRepository;
         this.orderRepository = orderRepository;
-        this.mapper = new BaristaDtoToBaristaMapper(orderRepository);
-    }
-
-    /**
-     * Constructor baser on connection. Create baristaRepository and orderRepository by connection.
-     * Create mapper by orderRepository.
-     *
-     * @param connection connection with database.
-     * @throws NullParamException when connection param is null.
-     */
-    public BaristaService(Connection connection) {
-        if (connection == null)
-            throw new NullParamException();
-
-        this.baristaRepository = new BaristaRepositoryImp(connection);
-        this.orderRepository = new OrderRepositoryImp(connection);
         this.mapper = new BaristaDtoToBaristaMapper(orderRepository);
     }
 

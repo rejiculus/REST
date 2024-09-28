@@ -57,7 +57,6 @@ public class BaristaDtoToBaristaMapper {
         if (baristaDTO == null || baristaDTO.orderIdList() == null)
             throw new NullParamException();
 
-
         return new Barista(
                 baristaDTO.id(),
                 baristaDTO.fullName(),

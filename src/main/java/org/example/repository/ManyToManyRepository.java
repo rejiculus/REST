@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import org.example.db.ConnectionManager;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
 import org.example.repository.exception.DataBaseException;
@@ -12,22 +13,22 @@ import java.sql.SQLException;
 public abstract class ManyToManyRepository {
     private final String updatePair;
     private final String deletePair;
-    protected Connection connection;
+    protected ConnectionManager connectionManager;
 
     /**
-     * Constructor based on connection.
+     * Constructor based on connectionManager.
      * Has methods to add and delete references between coupled entity.
      *
-     * @param connection     for processing adding and deleting references between db.
-     * @param updatePairsSql sql query to update reference between coupled entity.
-     * @param deletePairsSql sql query to delete reference between coupled entity.
+     * @param connectionManager for processing adding and deleting references between db.
+     * @param updatePairsSql    sql query to update reference between coupled entity.
+     * @param deletePairsSql    sql query to delete reference between coupled entity.
      * @throws NullParamException when some of params is null.
      */
-    protected ManyToManyRepository(Connection connection, String updatePairsSql, String deletePairsSql) {
-        if (connection == null || updatePairsSql == null || deletePairsSql == null)
+    protected ManyToManyRepository(ConnectionManager connectionManager, String updatePairsSql, String deletePairsSql) {
+        if (connectionManager == null || updatePairsSql == null || deletePairsSql == null)
             throw new NullParamException();
 
-        this.connection = connection;
+        this.connectionManager = connectionManager;
         updatePair = updatePairsSql;
         deletePair = deletePairsSql;
     }
@@ -50,7 +51,8 @@ public abstract class ManyToManyRepository {
         if (secondColumnId < 0)
             throw new NoValidIdException(secondColumnId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updatePair)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(updatePair)) {
             preparedStatement.setLong(1, firstColumnId);
             preparedStatement.setLong(2, secondColumnId);
             preparedStatement.executeUpdate();
@@ -81,7 +83,8 @@ public abstract class ManyToManyRepository {
         if (secondColumnId < 0)
             throw new NoValidIdException(secondColumnId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(deletePair)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(deletePair)) {
             preparedStatement.setLong(1, firstColumnId);
             preparedStatement.setLong(2, secondColumnId);
             preparedStatement.executeUpdate();

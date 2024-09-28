@@ -66,31 +66,40 @@ public class BaristaServlet extends SimpleServlet {
             } else if (pathInfo.matches(SPECIFIED_BARISTA_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 findById(id, resp);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
 
-
         } catch (NoValidPageException | NoValidLimitException | NullParamException | NoValidIdException |
                  NumberFormatException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (BaristaNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
     }
 
+    /**
+     * Send to response all barista objects using the service.
+     * Set status OK.
+     *
+     * @param response used to send response.
+     */
     private void findAll(HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
         List<BaristaPublicDTO> baristaDtoList = baristaService.findAll().stream()
@@ -104,6 +113,14 @@ public class BaristaServlet extends SimpleServlet {
         response.flushBuffer();
     }
 
+    /**
+     * Send to response all barista objects using the service grouped by page.
+     * Set status OK.
+     *
+     * @param page     number of page.
+     * @param limit    maximum objects in page.
+     * @param response used to send response.
+     */
     private void findAllByPage(int page, int limit, HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
         List<BaristaPublicDTO> baristaDtoList = baristaService.findAllByPage(page, limit)
@@ -118,6 +135,13 @@ public class BaristaServlet extends SimpleServlet {
         response.flushBuffer();
     }
 
+    /**
+     * Send to response barista object with specified id using the service grouped by page.
+     * Set status OK.
+     *
+     * @param id       searched barista's id.
+     * @param response used to send response.
+     */
     private void findById(Long id, HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
         Barista barista = baristaService.findById(id);
@@ -141,20 +165,29 @@ public class BaristaServlet extends SimpleServlet {
                 LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+
         } catch (NoValidIdException | NoValidTipSizeException | NoValidNameException |
                  NullParamException | JsonMappingException | NumberFormatException | JsonSyntaxException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
     }
 
+    /**
+     * Create barista using the service and send it back with defined id.
+     *
+     * @param request  income data with BaristaCreateDTO json.
+     * @param response outgoing data.
+     */
     private void create(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
         BaristaCreateDTO baristaDTO = mapper.fromJson(request.getReader(), BaristaCreateDTO.class);
@@ -175,6 +208,7 @@ public class BaristaServlet extends SimpleServlet {
                 update(id, req);
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.flushBuffer();
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -187,19 +221,28 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (BaristaNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
     }
 
+    /**
+     * Update barista using the service.
+     *
+     * @param id      updated barista id from url.
+     * @param request income data with BaristaUpdateDTO json.
+     */
     private void update(Long id, HttpServletRequest request) throws IOException {
         BaristaUpdateDTO barista = mapper.fromJson(request.getReader(), BaristaUpdateDTO.class);
         BaristaUpdateDTO baristaDTO = new BaristaUpdateDTO(id, barista.fullName(), barista.tipSize(), barista.orderIdList());
@@ -215,6 +258,7 @@ public class BaristaServlet extends SimpleServlet {
                 delete(id);
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.flushBuffer();
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -224,19 +268,27 @@ public class BaristaServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (BaristaNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
     }
 
+    /**
+     * Delete barista with specified id using the service.
+     *
+     * @param id id of the barista to be deleted
+     */
     private void delete(Long id) {
         baristaService.delete(id);
     }

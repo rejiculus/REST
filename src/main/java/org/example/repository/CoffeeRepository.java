@@ -1,9 +1,9 @@
 package org.example.repository;
 
+import org.example.db.ConnectionManager;
 import org.example.entity.Coffee;
 import org.example.repository.until.OrderCoffeeSQL;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,8 +11,9 @@ import java.util.Optional;
  * Interface to interaction with Coffee entity in db.
  */
 public abstract class CoffeeRepository extends ManyToManyRepository {
-    protected CoffeeRepository(Connection connection) {
-        super(connection, OrderCoffeeSQL.UPDATE_PAIRS.toString(), OrderCoffeeSQL.DELETE_PAIR.toString());
+
+    protected CoffeeRepository(ConnectionManager connectionManager) {
+        super(connectionManager, OrderCoffeeSQL.UPDATE_PAIRS.toString(), OrderCoffeeSQL.DELETE_PAIR.toString());
     }
 
     /**

@@ -1,5 +1,6 @@
 package org.example.repository.imp;
 
+import org.example.db.ConnectionManager;
 import org.example.entity.Barista;
 import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NoValidIdException;
@@ -20,16 +21,17 @@ import java.util.Optional;
  * Class to interact to barista entities in db.
  */
 public class BaristaRepositoryImp implements BaristaRepository {
-    private final Connection connection;
+    private final ConnectionManager connectionManager;
     private final BaristaMapper mapper;
 
+
     /**
-     * Constructor based on connection.
+     * Constructor based on Connection manager.
      *
-     * @param connection specified connection that will be used to interact with db.
+     * @param connectionManager specified connectionManager that will be used to get connection with db.
      */
-    public BaristaRepositoryImp(Connection connection) {
-        this.connection = connection;
+    public BaristaRepositoryImp(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
         mapper = new BaristaMapper();
     }
 
@@ -50,7 +52,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
 
         Barista newBarista = new Barista(barista.getFullName(), barista.getOrderList(), barista.getTipSize());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, newBarista.getFullName());
             preparedStatement.setDouble(2, newBarista.getTipSize());
@@ -84,7 +87,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
 
         Barista newBarista = new Barista(barista.getId(), barista.getFullName(), barista.getOrderList(), barista.getTipSize());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.UPDATE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.UPDATE.toString())) {
             preparedStatement.setString(1, newBarista.getFullName());
             preparedStatement.setDouble(2, newBarista.getTipSize());
             preparedStatement.setLong(3, newBarista.getId());
@@ -116,7 +120,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.DELETE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.DELETE.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
 
@@ -136,7 +141,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
      */
     @Override
     public List<Barista> findAll() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_ALL.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_ALL.toString())) {
             preparedStatement.executeQuery();
 
             ResultSet resultSet = preparedStatement.getResultSet();
@@ -164,7 +170,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
         if (page < 0)
             throw new NoValidPageException(page);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_ALL_BY_PAGE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_ALL_BY_PAGE.toString())) {
             preparedStatement.setLong(1, (long) page * limit);
             preparedStatement.setLong(2, limit);
             preparedStatement.executeQuery();
@@ -192,7 +199,8 @@ public class BaristaRepositoryImp implements BaristaRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_BY_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_BY_ID.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 

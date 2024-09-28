@@ -9,9 +9,6 @@ import org.example.repository.OrderRepository;
 import org.example.repository.exception.KeyNotPresentException;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.repository.imp.BaristaRepositoryImp;
-import org.example.repository.imp.CoffeeRepositoryImp;
-import org.example.repository.imp.OrderRepositoryImp;
 import org.example.service.IOrderService;
 import org.example.service.dto.IOrderCreateDTO;
 import org.example.service.dto.IOrderUpdateDTO;
@@ -19,7 +16,6 @@ import org.example.service.exception.OrderAlreadyCompletedException;
 import org.example.service.exception.OrderHasReferencesException;
 import org.example.service.mapper.OrderDtoToOrderMapper;
 
-import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,15 +34,6 @@ public class OrderService implements IOrderService {
         this.orderRepository = orderRepository;
         this.coffeeRepository = coffeeRepository;
         this.mapper = new OrderDtoToOrderMapper(baristaRepository, coffeeRepository);
-    }
-
-    public OrderService(Connection connection) {
-        if (connection == null)
-            throw new NullParamException();
-
-        this.orderRepository = new OrderRepositoryImp(connection);
-        this.coffeeRepository = new CoffeeRepositoryImp(connection);
-        this.mapper = new OrderDtoToOrderMapper(new BaristaRepositoryImp(connection), coffeeRepository);
     }
 
     /**

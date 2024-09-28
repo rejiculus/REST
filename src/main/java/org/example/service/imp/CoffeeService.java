@@ -8,15 +8,12 @@ import org.example.repository.OrderRepository;
 import org.example.repository.exception.KeyNotPresentException;
 import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
-import org.example.repository.imp.CoffeeRepositoryImp;
-import org.example.repository.imp.OrderRepositoryImp;
 import org.example.service.ICoffeeService;
 import org.example.service.dto.ICoffeeCreateDTO;
 import org.example.service.dto.ICoffeeUpdateDTO;
 import org.example.service.exception.CoffeeHasReferenceException;
 import org.example.service.mapper.CoffeeDtoToCoffeeMapper;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,22 +43,6 @@ public class CoffeeService implements ICoffeeService {
         this.mapper = new CoffeeDtoToCoffeeMapper(orderRepository);
     }
 
-    /**
-     * Constructor based on connection.
-     * Create orderRepository and coffeeRepository by connection.
-     * Create mapper by orderRepository.
-     *
-     * @param connection specified connection with db.
-     * @throws NullParamException when connection is null.
-     */
-    public CoffeeService(Connection connection) {
-        if (connection == null)
-            throw new NullParamException();
-
-        this.orderRepository = new OrderRepositoryImp(connection);
-        this.coffeeRepository = new CoffeeRepositoryImp(connection);
-        this.mapper = new CoffeeDtoToCoffeeMapper(orderRepository);
-    }
 
     /**
      * Creating coffee by ICoffeeCreateDTO.

@@ -1,5 +1,6 @@
 package org.example.repository.imp;
 
+import org.example.db.ConnectionManager;
 import org.example.entity.Coffee;
 import org.example.entity.exception.CoffeeNotFoundException;
 import org.example.entity.exception.NoValidIdException;
@@ -19,8 +20,8 @@ import java.util.Optional;
 public class CoffeeRepositoryImp extends CoffeeRepository {
     private final CoffeeMapper mapper;
 
-    public CoffeeRepositoryImp(Connection connection) {
-        super(connection);
+    public CoffeeRepositoryImp(ConnectionManager connectionManager) {
+        super(connectionManager);
         this.mapper = new CoffeeMapper();
     }
 
@@ -39,7 +40,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
 
         Coffee newCoffee = new Coffee(coffee.getName(), coffee.getPrice(), coffee.getOrderList());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, newCoffee.getName());
             preparedStatement.setDouble(2, newCoffee.getPrice());
             preparedStatement.executeUpdate();
@@ -70,7 +72,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
 
         Coffee newCoffee = new Coffee(coffee.getId(), coffee.getName(), coffee.getPrice(), coffee.getOrderList());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.UPDATE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.UPDATE.toString())) {
             preparedStatement.setString(1, newCoffee.getName());
             preparedStatement.setDouble(2, newCoffee.getPrice());
             preparedStatement.setLong(3, newCoffee.getId());
@@ -101,7 +104,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement coffeePreparedStatement = connection.prepareStatement(CoffeeSQL.DELETE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement coffeePreparedStatement = connection.prepareStatement(CoffeeSQL.DELETE.toString())) {
             coffeePreparedStatement.setLong(1, id);
             coffeePreparedStatement.executeUpdate();
 
@@ -121,7 +125,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
      */
     @Override
     public List<Coffee> findAll() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL.toString())) {
             preparedStatement.executeQuery();
 
             ResultSet resultSet = preparedStatement.getResultSet();
@@ -148,7 +153,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_BY_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_BY_ID.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 
@@ -177,7 +183,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         if (page < 0)
             throw new NoValidPageException(page);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL_BY_PAGE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL_BY_PAGE.toString())) {
             preparedStatement.setLong(1, (long) page * limit);
             preparedStatement.setLong(2, limit);
             preparedStatement.executeQuery();
@@ -207,7 +214,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_ORDER_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_ORDER_ID.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 
@@ -236,7 +244,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         if (coffeeId < 0)
             throw new NoValidIdException(coffeeId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_COFFEE_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_COFFEE_ID.toString())) {
             preparedStatement.setLong(1, coffeeId);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

@@ -52,9 +52,10 @@ public class CoffeeServlet extends SimpleServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             String pathInfo = req.getPathInfo();
-            Map<String, String[]> params = req.getParameterMap();
 
             if (pathInfo == null || pathInfo.equals("/")) {
+
+                Map<String, String[]> params = req.getParameterMap();
                 if (params.containsKey("page") && params.containsKey("limit")) {
                     int page = Integer.parseInt(params.get("page")[0]);
                     int limit = Integer.parseInt(params.get("limit")[0]);
@@ -63,10 +64,11 @@ public class CoffeeServlet extends SimpleServlet {
                 } else {
                     findAll(resp);
                 }
+
             } else if (pathInfo.matches(SPECIFIED_COFFEE_REGEX)) { //regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
-
                 findById(id, resp);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -79,19 +81,28 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (CoffeeNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
     }
 
+    /**
+     * Send all coffee objects that found using the service.
+     * Set status OK.
+     *
+     * @param response used to send response.
+     */
     private void findAll(HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
 
@@ -105,6 +116,14 @@ public class CoffeeServlet extends SimpleServlet {
         response.flushBuffer();
     }
 
+    /**
+     * Send coffee object found by id using the service.
+     * Set status OK.
+     *
+     * @param id
+     * @param response
+     * @throws IOException
+     */
     private void findById(Long id, HttpServletResponse response) throws IOException {
         PrintWriter printWriter = response.getWriter();
 
@@ -137,6 +156,7 @@ public class CoffeeServlet extends SimpleServlet {
 
             if (pathInfo == null || pathInfo.matches("/")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 create(req, resp);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -148,10 +168,12 @@ public class CoffeeServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -178,25 +200,30 @@ public class CoffeeServlet extends SimpleServlet {
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 update(id, req);
                 resp.setStatus(HttpServletResponse.SC_OK);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+
         } catch (NoValidIdException | NoValidPriceException | NoValidNameException |
                  NullParamException | JsonMappingException | NumberFormatException |
                  JsonSyntaxException | OrderNotFoundException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (CoffeeNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -217,27 +244,33 @@ public class CoffeeServlet extends SimpleServlet {
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 delete(id);
                 resp.setStatus(HttpServletResponse.SC_OK);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.severe(message);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
             }
+
         } catch (NumberFormatException | NullParamException | NoValidIdException e) {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (CoffeeNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (CoffeeHasReferenceException e) {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }

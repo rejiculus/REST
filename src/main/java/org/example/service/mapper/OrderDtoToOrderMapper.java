@@ -43,6 +43,7 @@ public class OrderDtoToOrderMapper {
         Barista barista = baristaRepository
                 .findById(orderDTO.baristaId())
                 .orElseThrow(() -> new BaristaNotFoundException(orderDTO.baristaId()));
+
         List<Coffee> coffees = orderDTO.coffeeIdList().stream()
                 .map(coffeeId -> coffeeRepository
                         .findById(coffeeId)
@@ -72,6 +73,7 @@ public class OrderDtoToOrderMapper {
         Barista barista = baristaRepository
                 .findById(orderDTO.baristaId())
                 .orElseThrow(() -> new BaristaNotFoundException(orderDTO.baristaId()));
+
         List<Coffee> coffees = orderDTO.coffeeIdList().stream()
                 .map(coffeeId -> coffeeRepository
                         .findById(coffeeId)

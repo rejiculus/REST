@@ -1,5 +1,6 @@
 package org.example.repository.imp;
 
+import org.example.db.ConnectionManager;
 import org.example.entity.Order;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
@@ -22,19 +23,11 @@ import java.util.Optional;
 public class OrderRepositoryImp extends OrderRepository {
     private final OrderMapper mapper;
 
-    public OrderRepositoryImp(Connection connection) {
-        super(connection);
-        this.mapper = new OrderMapper(new BaristaRepositoryImp(connection));
+    public OrderRepositoryImp(ConnectionManager connectionManager) {
+        super(connectionManager);
+        this.mapper = new OrderMapper(new BaristaRepositoryImp(connectionManager));
     }
 
-    public OrderRepositoryImp(Connection connection, OrderMapper mapper) {
-        super(connection);
-
-        if (mapper == null)
-            throw new NullParamException();
-
-        this.mapper = mapper;
-    }
 
     /**
      * Create order in db by order object.
@@ -51,7 +44,8 @@ public class OrderRepositoryImp extends OrderRepository {
 
         Order newOrder = new Order(order.getBarista(), order.getCoffeeList(), order.getCreated(), order.getCompleted(), order.getPrice());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.CREATE.toString(), Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setLong(1, newOrder.getBarista().getId());
 
             if (newOrder.getCreated() == null)
@@ -93,7 +87,8 @@ public class OrderRepositoryImp extends OrderRepository {
 
         Order newOrder = new Order(order.getId(), order.getBarista(), order.getCoffeeList(), order.getCreated(), order.getCompleted(), order.getPrice());
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.UPDATE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.UPDATE.toString())) {
             preparedStatement.setLong(1, newOrder.getBarista().getId());
             if (newOrder.getCreated() == null)
                 throw new NullParamException();
@@ -132,7 +127,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.DELETE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.DELETE.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
             if (preparedStatement.getUpdateCount() == 0)
@@ -151,7 +147,8 @@ public class OrderRepositoryImp extends OrderRepository {
      */
     @Override
     public List<Order> findAll() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL.toString())) {
             preparedStatement.executeQuery();
 
             ResultSet resultSet = preparedStatement.getResultSet();
@@ -177,7 +174,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_BY_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_BY_ID.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 
@@ -205,7 +203,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (baristaId < 0)
             throw new NoValidIdException(baristaId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_BY_BARISTA.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_BY_BARISTA.toString())) {
             preparedStatement.setLong(1, baristaId);
             preparedStatement.executeQuery();
 
@@ -235,7 +234,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (page < 0)
             throw new NoValidPageException(page);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL_BY_PAGE.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL_BY_PAGE.toString())) {
             preparedStatement.setLong(1, (long) page * limit);
             preparedStatement.setLong(2, limit);
             preparedStatement.executeQuery();
@@ -262,7 +262,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (orderId < 0)
             throw new NoValidIdException(orderId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.SET_BARISTA_DEFAULT.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.SET_BARISTA_DEFAULT.toString())) {
             preparedStatement.setLong(1, orderId);
             preparedStatement.executeQuery();
 
@@ -288,7 +289,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (id < 0)
             throw new NoValidIdException(id);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_COFFEE_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_COFFEE_ID.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 
@@ -319,7 +321,8 @@ public class OrderRepositoryImp extends OrderRepository {
         if (orderId < 0)
             throw new NoValidIdException(orderId);
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_ORDER_ID.toString())) {
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_ORDER_ID.toString())) {
             preparedStatement.setLong(1, orderId);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

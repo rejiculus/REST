@@ -40,8 +40,11 @@ public class OrderServlet extends SimpleServlet {
     private static final String HAS_REF = "Has references: %s";
     private static final String BAD_PARAMS = "Bad params: %s";
     private static final String SOME_DATA_BASE_EXCEPTION = "Some database error: %s";
+    private static final String ALREADY_EXIST = "Already exist: %s";
 
+    private static final String ORDER_QUEUE = "/queue/?"; // regex match "/queue" or "/queue/"
     private static final String SPECIFIED_ORDER_REGEX = "/\\d+/?"; //regex путь соответствующий "/[цифры]/" или "/[цифры]"
+    private static final String SPECIFIED_ORDER_COMPLETE_REGEX = "/\\d+/complete/?"; //regex match "/[digits]/complete" or "/[digits]/complete/"
 
     public OrderServlet(IOrderService orderService) {
         if (orderService == null)
@@ -52,7 +55,6 @@ public class OrderServlet extends SimpleServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
         try {
             String pathInfo = req.getPathInfo();
             resp.setContentType("text/html");
@@ -62,16 +64,18 @@ public class OrderServlet extends SimpleServlet {
                 if (params.containsKey("page") && params.containsKey("limit")) {
                     int page = Integer.parseInt(params.get("page")[0]);
                     int limit = Integer.parseInt(params.get("limit")[0]);
-
                     findAllByPage(page, limit, resp);
                 } else {
                     findAll(resp);
                 }
-            } else if (pathInfo.matches("/queue/?")) { // regex match "/queue" or "/queue/"
+
+            } else if (pathInfo.matches(ORDER_QUEUE)) { // regex match "/queue" or "/queue/"
                 getQueue(resp);
+
             } else if (pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex match "/[цифры]/" or "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
                 findById(id, resp);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.severe(message);
@@ -82,14 +86,17 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (OrderNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -147,6 +154,7 @@ public class OrderServlet extends SimpleServlet {
 
             if (pathInfo == null || pathInfo.matches("/?")) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 create(req, resp);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -158,10 +166,12 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -187,18 +197,17 @@ public class OrderServlet extends SimpleServlet {
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, String.format(BAD_PATH, pathInfo));
+
             } else if (pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex match "/[цифры]/" or "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
-
                 update(id, req);
-
                 resp.setStatus(HttpServletResponse.SC_OK);
-            } else if (pathInfo.matches("/\\d+/complete/?")) { //regex match "/[digits]/complete" or "/[digits]/complete/"
+
+            } else if (pathInfo.matches(SPECIFIED_ORDER_COMPLETE_REGEX)) { //regex match "/[digits]/complete" or "/[digits]/complete/"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
-
                 complete(id);
-
                 resp.setStatus(HttpServletResponse.SC_OK);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.severe(message);
@@ -210,18 +219,22 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (OrderNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (OrderAlreadyCompletedException e) {
-            String message = String.format("Already exist: %s", e.getMessage());
+            String message = String.format(ALREADY_EXIST, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }
@@ -229,7 +242,8 @@ public class OrderServlet extends SimpleServlet {
 
     private void update(Long id, HttpServletRequest request) throws IOException {
         OrderUpdateDTO orderDTO = mapper.fromJson(request.getReader(), OrderUpdateDTO.class);
-        OrderUpdateDTO orderNoRefDTO = new OrderUpdateDTO(id,
+        OrderUpdateDTO orderNoRefDTO = new OrderUpdateDTO(
+                id,
                 orderDTO.baristaId(),
                 orderDTO.created(),
                 orderDTO.completed(),
@@ -250,10 +264,9 @@ public class OrderServlet extends SimpleServlet {
 
             if (pathInfo != null && pathInfo.matches(SPECIFIED_ORDER_REGEX)) {//regex путь соответствующий "/[цифры]/" или "/[цифры]"
                 Long id = Long.parseLong(pathInfo.split("/")[1]);
-
                 delete(id);
-
                 resp.setStatus(HttpServletResponse.SC_OK);
+
             } else {
                 String message = String.format(BAD_PATH, pathInfo);
                 LOGGER.info(message);
@@ -263,18 +276,22 @@ public class OrderServlet extends SimpleServlet {
             String message = String.format(BAD_PARAMS, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (OrderNotFoundException e) {
             String message = String.format(NOT_FOUND, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, message);
+
         } catch (OrderHasReferencesException e) {
             String message = String.format(HAS_REF, e.getMessage());
             LOGGER.info(message);
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+
         } catch (DataBaseException e) {
             String message = String.format(SOME_DATA_BASE_EXCEPTION, e.getMessage());
             LOGGER.severe(message);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+
         } catch (IOException e) {
             LOGGER.severe(e.getMessage());
         }

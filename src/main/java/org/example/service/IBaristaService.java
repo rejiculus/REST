@@ -32,7 +32,7 @@ public interface IBaristaService {
      * Delete barista from db.
      * Updating couped orders, setting default barista.
      *
-     * @param id deleting barista.
+     * @param id id of the barista to be deleted
      */
     void delete(Long id);
 
