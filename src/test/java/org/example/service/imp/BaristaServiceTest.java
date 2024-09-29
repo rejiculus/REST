@@ -15,7 +15,6 @@ import org.mockito.MockitoAnnotations;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BaristaServiceTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
-            .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
-                    "/docker-entrypoint-initdb.d/01-schema.sql");
+            .withInitScript("DB_script.sql");
     static AutoCloseable mocks;
     @Mock
     BaristaRepository baristaRepository;

@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.utility.MountableFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +29,7 @@ class ManyToManyRepositoryTest {
     private static BaristaRepository baristaRepository;
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
-            .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
-                    "/docker-entrypoint-initdb.d/01-schema.sql");
+            .withInitScript("DB_script.sql");
 
     @BeforeAll
     static void beforeAll() {

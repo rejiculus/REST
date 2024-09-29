@@ -24,7 +24,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.utility.MountableFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,11 +37,7 @@ import static org.mockito.Mockito.*;
 class CoffeeServletTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
-            .withDatabaseName("postgres")
-            .withUsername("postgres")
-            .withPassword("postgres")
-            .withCopyFileToContainer(MountableFile.forClasspathResource("DB_script.sql"),
-                    "/docker-entrypoint-initdb.d/01-schema.sql");
+            .withInitScript("DB_script.sql");
 
     private static CoffeeServlet coffeeServlet;
     private static CoffeeRepository coffeeRepository;
