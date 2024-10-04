@@ -148,7 +148,37 @@ public class OrderRepositoryImp extends OrderRepository {
     @Override
     public List<Order> findAll() {
         try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL.toString())) {
+             Statement statement = connection.createStatement()) {
+            statement.executeQuery(OrderSQL.FIND_ALL.toString());
+
+            ResultSet resultSet = statement.getResultSet();
+            return mapper.mapToList(resultSet);
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
+    }
+
+    /**
+     * Find all order grouped by page and limited.
+     *
+     * @param page  number of page. Can't be less than zero.
+     * @param limit number of maximum objects in list.
+     * @return list of order in specified page.
+     * @throws NoValidLimitException when limit is less than one.
+     * @throws NoValidPageException  when page is less than zero.
+     * @throws DataBaseException     sql exception.
+     */
+    @Override
+    public List<Order> findAllByPage(int page, int limit) {
+        if (limit <= 0)
+            throw new NoValidLimitException(limit);
+        if (page < 0)
+            throw new NoValidPageException(page);
+
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL_BY_PAGE.toString())) {
+            preparedStatement.setLong(1, (long) page * limit);
+            preparedStatement.setLong(2, limit);
             preparedStatement.executeQuery();
 
             ResultSet resultSet = preparedStatement.getResultSet();
@@ -218,30 +248,33 @@ public class OrderRepositoryImp extends OrderRepository {
     }
 
     /**
-     * Find all order grouped by page and limited.
+     * Find all order by specified coffee id.
      *
-     * @param page  number of page. Can't be less than zero.
-     * @param limit number of maximum objects in list.
-     * @return list of order in specified page.
-     * @throws NoValidLimitException when limit is less than one.
-     * @throws NoValidPageException  when page is less than zero.
-     * @throws DataBaseException     sql exception.
+     * @param id coffee id.
+     * @return list of order object's that contains specified coffee.
+     * @throws NullParamException     when id is null.
+     * @throws NoValidIdException     when id is less than zero.
+     * @throws OrderNotFoundException when order with specified id is not found in db.
+     * @throws DataBaseException      sql exception.
      */
     @Override
-    public List<Order> findAllByPage(int page, int limit) {
-        if (limit <= 0)
-            throw new NoValidLimitException(limit);
-        if (page < 0)
-            throw new NoValidPageException(page);
+    public List<Order> findByCoffeeId(Long id) {
+        if (id == null)
+            throw new NullParamException();
+        if (id < 0)
+            throw new NoValidIdException(id);
 
         try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_ALL_BY_PAGE.toString())) {
-            preparedStatement.setLong(1, (long) page * limit);
-            preparedStatement.setLong(2, limit);
+             PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.FIND_BY_COFFEE.toString())) {
+            preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 
             ResultSet resultSet = preparedStatement.getResultSet();
-            return mapper.mapToList(resultSet);
+            List<Long> orderIdList = mapper.mapIds(resultSet);
+            return orderIdList.stream()
+                    .map(orderId -> findById(orderId)
+                            .orElseThrow(() -> new OrderNotFoundException(orderId)))
+                    .toList();
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
         }
@@ -271,40 +304,6 @@ public class OrderRepositoryImp extends OrderRepository {
             throw new DataBaseException(e.getMessage());
         }
     }
-
-    /**
-     * Find all order by specified coffee id.
-     *
-     * @param id coffee id.
-     * @return list of order object's that contains specified coffee.
-     * @throws NullParamException     when id is null.
-     * @throws NoValidIdException     when id is less than zero.
-     * @throws OrderNotFoundException when order with specified id is not found in db.
-     * @throws DataBaseException      sql exception.
-     */
-    @Override
-    public List<Order> findByCoffeeId(Long id) {
-        if (id == null)
-            throw new NullParamException();
-        if (id < 0)
-            throw new NoValidIdException(id);
-
-        try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_COFFEE_ID.toString())) {
-            preparedStatement.setLong(1, id);
-            preparedStatement.executeQuery();
-
-            ResultSet resultSet = preparedStatement.getResultSet();
-            List<Long> orderIdList = mapper.mapIds(resultSet);
-            return orderIdList.stream()
-                    .map(orderId -> findById(orderId)
-                            .orElseThrow(() -> new OrderNotFoundException(orderId)))
-                    .toList();
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
-    }
-
 
     /**
      * Delete references between orders and coffees by specified order id.

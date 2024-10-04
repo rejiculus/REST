@@ -126,11 +126,10 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
     @Override
     public List<Coffee> findAll() {
         try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_ALL.toString())) {
-            preparedStatement.executeQuery();
+             Statement statement = connection.createStatement()) {
+            statement.executeQuery(CoffeeSQL.FIND_ALL.toString());
 
-            ResultSet resultSet = preparedStatement.getResultSet();
-
+            ResultSet resultSet = statement.getResultSet();
             return mapper.mapToList(resultSet);
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
@@ -215,7 +214,7 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
             throw new NoValidIdException(id);
 
         try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.FIND_BY_ORDER_ID.toString())) {
+             PreparedStatement preparedStatement = connection.prepareStatement(CoffeeSQL.FIND_BY_ORDER.toString())) {
             preparedStatement.setLong(1, id);
             preparedStatement.executeQuery();
 

@@ -10,7 +10,7 @@ public enum CoffeeSQL {
     FIND_BY_ID("SELECT \"id\",\"name\", price FROM coffee WHERE \"id\"=?");
 
 
-    private String sql;
+    private final String sql;
 
     CoffeeSQL(String sql) {
         this.sql = sql;

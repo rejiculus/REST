@@ -9,7 +9,7 @@ public enum BaristaSQL {
     FIND_ALL_BY_PAGE("SELECT \"id\", full_name, tip_size FROM barista OFFSET ? LIMIT ?");
 
 
-    private String sql;
+    private final String sql;
 
     BaristaSQL(String sql) {
         this.sql = sql;

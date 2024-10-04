@@ -34,7 +34,6 @@ public class OrderMapper implements SimpleMapper<Order> {
             int priceColumn = resultSet.findColumn("price");
             int baristaColumn = resultSet.findColumn("barista");
 
-
             Long id = resultSet.getLong(idColumn);
             Timestamp createTimestamp = resultSet.getTimestamp("created");
             Timestamp completedTimestamp = resultSet.getTimestamp("completed");

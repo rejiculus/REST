@@ -34,7 +34,7 @@ public class BaristaMapper implements SimpleMapper<Barista> {
             Barista barista = new Barista(fullName, tipSize);
             barista.setId(id);
 
-            barista.setOrderList(new ArrayList<>());//lazy load
+            barista.setOrderList(new ArrayList<>());
 
             return barista;
         } catch (SQLException e) {

@@ -142,10 +142,10 @@ public class BaristaRepositoryImp implements BaristaRepository {
     @Override
     public List<Barista> findAll() {
         try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(BaristaSQL.FIND_ALL.toString())) {
-            preparedStatement.executeQuery();
+             Statement statement = connection.createStatement()) {
+            statement.executeQuery(BaristaSQL.FIND_ALL.toString());
 
-            ResultSet resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = statement.getResultSet();
             return mapper.mapToList(resultSet);
 
         } catch (SQLException e) {
