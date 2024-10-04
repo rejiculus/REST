@@ -8,12 +8,13 @@ import org.example.repository.exception.NoValidLimitException;
 import org.example.repository.exception.NoValidPageException;
 import org.example.servlet.dto.BaristaCreateDTO;
 import org.example.servlet.dto.BaristaUpdateDTO;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
@@ -24,9 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Testcontainers
 class BaristaServiceTest {
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
-            .withInitScript("DB_script.sql");
     static AutoCloseable mocks;
     @Mock
     BaristaRepository baristaRepository;
@@ -34,11 +32,6 @@ class BaristaServiceTest {
     OrderRepository orderRepository;
 
     BaristaService baristaService;
-
-    @BeforeAll
-    static void beforeAll() {
-        postgres.start();
-    }
 
     @BeforeEach
     public void setUp() {
@@ -49,7 +42,6 @@ class BaristaServiceTest {
     @AfterAll
     public static void close() throws Exception {
         mocks.close();
-        postgres.stop();
     }
 
 
