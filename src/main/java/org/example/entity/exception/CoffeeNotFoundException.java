@@ -1,5 +1,6 @@
 package org.example.entity.exception;
 
+
 /**
  * Thrown when Coffee entity is not found in db
  */

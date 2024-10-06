@@ -6,6 +6,7 @@ public enum BaristaSQL {
     DELETE("DELETE FROM barista WHERE \"id\"=?"),
     FIND_ALL("SELECT \"id\", full_name, tip_size FROM barista"),
     FIND_BY_ID("SELECT \"id\", full_name, tip_size FROM barista WHERE \"id\"=?"),
+    FIND_ALL_BY_ID("SELECT \"id\", full_name, tip_size FROM barista WHERE \"id\" IN (%s)"),
     FIND_ALL_BY_PAGE("SELECT \"id\", full_name, tip_size FROM barista OFFSET ? LIMIT ?");
 
 

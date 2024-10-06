@@ -12,10 +12,10 @@ import org.example.repository.exception.NoValidPageException;
 import org.example.repository.mapper.CoffeeMapper;
 import org.example.repository.until.CoffeeSQL;
 import org.example.repository.until.OrderCoffeeSQL;
+import org.example.repository.until.QueryUntil;
 
 import java.sql.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class CoffeeRepositoryImp extends CoffeeRepository {
     private final CoffeeMapper mapper;
@@ -160,6 +160,44 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
             ResultSet resultSet = preparedStatement.getResultSet();
             return mapper.mapToOptional(resultSet);
 
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Coffee> findById(List<Long> idList) {
+        if (idList == null)
+            throw new NullParamException();
+        if (idList.isEmpty())
+            return new ArrayList<>();
+
+        Map<Long, Coffee> containedCoffeeMap = new HashMap<>();
+        List<Coffee> resultCoffeeList = new ArrayList<>();
+        String sql = String.format(CoffeeSQL.FIND_ALL_BY_ID.toString(), QueryUntil.generatePlaceholders(idList.size()));
+
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            for (int i = 0; i < idList.size(); i++) {
+                preparedStatement.setLong(1 + i, idList.get(i));
+            }
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Coffee coffee = mapper.map(resultSet);
+                containedCoffeeMap.put(coffee.getId(), coffee);
+            }
+
+            for (Long id : idList) {
+                Coffee coffee = containedCoffeeMap.get(id);
+                if (coffee == null)
+                    throw new CoffeeNotFoundException(id);
+
+                resultCoffeeList.add(coffee);
+            }
+
+            return resultCoffeeList;
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
         }

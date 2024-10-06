@@ -231,7 +231,7 @@ class OrderServiceTest {
                 .thenReturn(null);
         Mockito.when(orderDTONull.coffeeIdList())
                 .thenReturn(null);
-        Mockito.when(baristaRepository.findById(null))
+        Mockito.when(baristaRepository.findById((Long) null))
                 .thenThrow(NullParamException.class);
 
 
@@ -274,9 +274,9 @@ class OrderServiceTest {
         OrderUpdateDTO orderDTONoValidPrice = Mockito.spy(new OrderUpdateDTO(0L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, -1.0, List.of(0L)));
         OrderUpdateDTO orderDTONotFound = Mockito.spy(new OrderUpdateDTO(99L, 0L, LocalDateTime.MIN, LocalDateTime.MAX, 1.0, List.of(0L)));
 
-        Mockito.when(baristaRepository.findById(any()))
+        Mockito.when(baristaRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(specificBarista));
-        Mockito.when(coffeeRepository.findById(any()))
+        Mockito.when(coffeeRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(specificCoffee));
         Mockito.when(mapper.map(orderDTONoValidId))
                 .thenThrow(NoValidIdException.class);

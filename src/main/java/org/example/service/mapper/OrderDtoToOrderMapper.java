@@ -44,11 +44,7 @@ public class OrderDtoToOrderMapper {
                 .findById(orderDTO.baristaId())
                 .orElseThrow(() -> new BaristaNotFoundException(orderDTO.baristaId()));
 
-        List<Coffee> coffees = orderDTO.coffeeIdList().stream()
-                .map(coffeeId -> coffeeRepository
-                        .findById(coffeeId)
-                        .orElseThrow(() -> new CoffeeNotFoundException(coffeeId)))
-                .toList();
+        List<Coffee> coffees = coffeeRepository.findById(orderDTO.coffeeIdList());
 
         return new Order(barista, coffees);
     }
@@ -74,11 +70,7 @@ public class OrderDtoToOrderMapper {
                 .findById(orderDTO.baristaId())
                 .orElseThrow(() -> new BaristaNotFoundException(orderDTO.baristaId()));
 
-        List<Coffee> coffees = orderDTO.coffeeIdList().stream()
-                .map(coffeeId -> coffeeRepository
-                        .findById(coffeeId)
-                        .orElseThrow(() -> new CoffeeNotFoundException(coffeeId)))
-                .toList();
+        List<Coffee> coffees = coffeeRepository.findById(orderDTO.coffeeIdList());
 
         return new Order(orderDTO.id(), barista, coffees, orderDTO.created(), orderDTO.completed(), orderDTO.price());
     }

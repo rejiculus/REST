@@ -165,8 +165,42 @@ class CoffeeRepositoryImpTest {
 
     @Test
     void findByIdWrongTest() {
-        assertThrows(NullParamException.class, () -> coffeeRepository.findById(null));
+        assertThrows(NullParamException.class, () -> coffeeRepository.findById((Long) null));
         assertThrows(NoValidIdException.class, () -> coffeeRepository.findById(-1L));
+    }
+
+    @Test
+    void findAllByIdTest() {
+        Coffee expextedCoffee1 = new Coffee("Name", 0.0);
+        Coffee expextedCoffee2 = new Coffee("Name", 0.0);
+
+        expextedCoffee1 = coffeeRepository.create(expextedCoffee1);
+        expextedCoffee2 = coffeeRepository.create(expextedCoffee2);
+
+
+        List<Coffee> resultCoffeeList = coffeeRepository.findById(List.of(expextedCoffee1.getId(), expextedCoffee2.getId()));
+
+        assertEquals(List.of(expextedCoffee1, expextedCoffee2), resultCoffeeList);
+    }
+
+    @Test
+    void findAllByIdTestSame() {
+        Coffee expextedCoffee1 = new Coffee("Name", 0.0);
+
+        expextedCoffee1 = coffeeRepository.create(expextedCoffee1);
+
+
+        List<Coffee> resultCoffeeList = coffeeRepository.findById(List.of(expextedCoffee1.getId(), expextedCoffee1.getId()));
+
+        assertEquals(List.of(expextedCoffee1, expextedCoffee1), resultCoffeeList);
+    }
+
+    @Test
+    void findAllByIdWrongTest() {
+        List<Long> notFoundIdList = List.of(1L, 99L, 138L);
+
+        assertThrows(NullParamException.class, () -> coffeeRepository.findById((List<Long>) null));
+        assertThrows(CoffeeNotFoundException.class, () -> coffeeRepository.findById(notFoundIdList));
     }
 
 

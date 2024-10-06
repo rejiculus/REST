@@ -11,7 +11,8 @@ public enum OrderSQL {
             "LEFT JOIN order_coffee ON \"order\".\"id\"=order_coffee.order_id " +
             "WHERE order_coffee.coffee_id=?"),
     FIND_BY_BARISTA("SELECT \"id\", barista, created, completed, price FROM \"order\" WHERE barista=?"),
-    SET_BARISTA_DEFAULT("UPDATE \"order\" SET barista=0 WHERE \"id\"=?");
+    SET_BARISTA_DEFAULT("UPDATE \"order\" SET barista=0 WHERE \"id\"=?"),
+    FIND_ALL_BY_ID("SELECT \"id\", barista, created, completed, price FROM \"order\" WHERE \"id\" IN (%s)");
 
 
     private final String sql;

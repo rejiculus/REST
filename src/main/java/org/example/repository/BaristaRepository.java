@@ -55,4 +55,12 @@ public interface BaristaRepository {
      * @return Optional Barista object.
      */
     Optional<Barista> findById(Long id);
+
+    /**
+     * Found barista objects from db by specified ids.
+     *
+     * @param idList barista id list.
+     * @return List of Barista object.
+     */
+    List<Barista> findById(List<Long> idList);
 }

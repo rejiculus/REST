@@ -1,5 +1,6 @@
 package org.example.entity.exception;
 
+
 /**
  * Thrown when barista entity is not found in db
  */

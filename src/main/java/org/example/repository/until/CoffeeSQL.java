@@ -7,7 +7,8 @@ public enum CoffeeSQL {
     DELETE("DELETE FROM coffee WHERE \"id\"=?"),
     FIND_ALL("SELECT \"id\",\"name\", price FROM coffee"),
     FIND_ALL_BY_PAGE("SELECT \"id\",\"name\", price FROM coffee OFFSET ? LIMIT ?"),
-    FIND_BY_ID("SELECT \"id\",\"name\", price FROM coffee WHERE \"id\"=?");
+    FIND_BY_ID("SELECT \"id\",\"name\", price FROM coffee WHERE \"id\"=?"),
+    FIND_ALL_BY_ID("SELECT \"id\",\"name\", price FROM coffee WHERE \"id\" IN (%s)");
 
 
     private final String sql;

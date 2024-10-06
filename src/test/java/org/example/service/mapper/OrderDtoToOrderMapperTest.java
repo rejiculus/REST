@@ -58,10 +58,8 @@ class OrderDtoToOrderMapperTest {
 
         Mockito.when(baristaRepository.findById(1L))
                 .thenReturn(Optional.of(specifiedBarista));
-        Mockito.when(coffeeRepository.findById(1L))
-                .thenReturn(Optional.of(specifiedCoffee1));
-        Mockito.when(coffeeRepository.findById(2L))
-                .thenReturn(Optional.of(specifiedCoffee2));
+        Mockito.when(coffeeRepository.findById(List.of(1L, 2L)))
+                .thenReturn(List.of(specifiedCoffee1, specifiedCoffee2));
 
         Order resultOrder = mapper.map(specifiedOrderDTO);
 
@@ -86,10 +84,8 @@ class OrderDtoToOrderMapperTest {
 
         Mockito.when(baristaRepository.findById(1L))
                 .thenReturn(Optional.of(specifiedBarista));
-        Mockito.when(coffeeRepository.findById(1L))
-                .thenReturn(Optional.of(specifiedCoffee1));
-        Mockito.when(coffeeRepository.findById(2L))
-                .thenReturn(Optional.of(specifiedCoffee2));
+        Mockito.when(coffeeRepository.findById(List.of(1L, 2L)))
+                .thenReturn(List.of(specifiedCoffee1, specifiedCoffee2));
 
         Order resultOrder = mapper.map(specifiedOrderDTO);
 

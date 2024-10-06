@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,8 +60,8 @@ class BaristaDtoToBaristaMapperTest {
 
         Mockito.when(specifiedOrder.getId())
                 .thenReturn(1L);
-        Mockito.when(orderRepository.findById(1L))
-                .thenReturn(Optional.of(specifiedOrder));
+        Mockito.when(orderRepository.findById(List.of(1L)))
+                .thenReturn(List.of(specifiedOrder));
 
         Barista barista = mapper.map(specifiedBaristaDto);
 

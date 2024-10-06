@@ -70,6 +70,15 @@ public abstract class OrderRepository extends ManyToManyRepository {
      */
     public abstract Optional<Order> findById(Long id);
 
+
+    /**
+     * Find order objects by specified ids.
+     *
+     * @param idList order id list.
+     * @return List of Order objects.
+     */
+    public abstract List<Order> findById(List<Long> idList);
+
     /**
      * Set default barista to order with specified id.
      *

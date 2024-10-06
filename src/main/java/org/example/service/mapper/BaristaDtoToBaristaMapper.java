@@ -60,10 +60,7 @@ public class BaristaDtoToBaristaMapper {
         return new Barista(
                 baristaDTO.id(),
                 baristaDTO.fullName(),
-                baristaDTO.orderIdList().stream()
-                        .map(orderId -> orderRepository.findById(orderId)
-                                .orElseThrow(() -> new OrderNotFoundException(orderId)))
-                        .toList(),
+                orderRepository.findById(baristaDTO.orderIdList()),
                 baristaDTO.tipSize());
     }
 }

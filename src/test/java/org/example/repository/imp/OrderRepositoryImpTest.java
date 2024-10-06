@@ -175,7 +175,7 @@ class OrderRepositoryImpTest {
 
     @Test
     void findByIdWrongTest() {
-        Assertions.assertThrows(NullParamException.class, () -> orderRepository.findById(null));
+        Assertions.assertThrows(NullParamException.class, () -> orderRepository.findById((Long) null));
         Assertions.assertThrows(NoValidIdException.class, () -> orderRepository.findById(-1L));
     }
 

@@ -64,6 +64,14 @@ public abstract class CoffeeRepository extends ManyToManyRepository {
     public abstract Optional<Coffee> findById(Long id);
 
     /**
+     * Find coffee objects in db by specified ids.
+     *
+     * @param idList find coffee's id.
+     * @return List of Coffee objects.
+     */
+    public abstract List<Coffee> findById(List<Long> idList);
+
+    /**
      * Find all coffee's that contains order with specified id.
      *
      * @param id order id.

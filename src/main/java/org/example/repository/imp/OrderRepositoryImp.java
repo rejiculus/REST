@@ -12,10 +12,10 @@ import org.example.repository.exception.NoValidPageException;
 import org.example.repository.mapper.OrderMapper;
 import org.example.repository.until.OrderCoffeeSQL;
 import org.example.repository.until.OrderSQL;
+import org.example.repository.until.QueryUntil;
 
 import java.sql.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class to interact with order entity in db.
@@ -211,6 +211,46 @@ public class OrderRepositoryImp extends OrderRepository {
 
             ResultSet resultSet = preparedStatement.getResultSet();
             return mapper.mapToOptional(resultSet);
+
+        } catch (SQLException e) {
+            throw new DataBaseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Order> findById(List<Long> idList) {
+        if (idList == null)
+            throw new NullParamException();
+        if (idList.isEmpty())
+            return new ArrayList<>();
+
+
+        Map<Long, Order> containedOrderMap = new HashMap<>();
+        List<Order> resultOrderList = new ArrayList<>();
+        String sql = String.format(OrderSQL.FIND_ALL_BY_ID.toString(), QueryUntil.generatePlaceholders(idList.size()));
+
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            for (int i = 0; i < idList.size(); i++) {
+                preparedStatement.setLong(1 + i, idList.get(i));
+            }
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Order order = mapper.map(resultSet);
+                containedOrderMap.put(order.getId(), order);
+            }
+
+            for (Long id : idList) {
+                Order order = containedOrderMap.get(id);
+                if (order == null)
+                    throw new OrderNotFoundException(id);
+
+                resultOrderList.add(order);
+            }
+
+            return resultOrderList;
 
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());

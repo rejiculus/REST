@@ -55,10 +55,6 @@ public class CoffeeDtoToCoffeeMapper {
                 coffeeDTO.id(),
                 coffeeDTO.name(),
                 coffeeDTO.price(),
-                coffeeDTO.orderIdList()
-                        .stream()
-                        .map(orderId -> orderRepository.findById(orderId)
-                                .orElseThrow(() -> new OrderNotFoundException(orderId)))
-                        .toList());
+                orderRepository.findById(coffeeDTO.orderIdList()));
     }
 }

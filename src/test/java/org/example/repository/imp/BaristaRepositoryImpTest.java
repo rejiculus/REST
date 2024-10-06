@@ -159,7 +159,31 @@ class BaristaRepositoryImpTest {
     @Test
     void findByIdWrongTest() {
 
-        assertThrows(NullParamException.class, () -> baristaRepository.findById(null));
+        assertThrows(NullParamException.class, () -> baristaRepository.findById((Long) null));
         assertThrows(NoValidIdException.class, () -> baristaRepository.findById(-1L));
+    }
+
+    @Test
+    void findAllByIdTest() {
+        Barista expectedBarista1 = new Barista("John Doe", new ArrayList<>(), 0.9);
+        Barista expectedBarista2 = new Barista("John Doe", new ArrayList<>(), 0.9);
+        expectedBarista1 = baristaRepository.create(expectedBarista1);
+        expectedBarista2 = baristaRepository.create(expectedBarista2);
+
+        List<Barista> resultBarista = baristaRepository.findById(List.of(expectedBarista1.getId(), expectedBarista2.getId()));
+
+        assertEquals(List.of(expectedBarista1, expectedBarista2), resultBarista);
+    }
+
+    @Test
+    void findAllByIdWrongTest() {
+        Barista expectedBarista1 = new Barista("John Doe", new ArrayList<>(), 0.9);
+        expectedBarista1 = baristaRepository.create(expectedBarista1);
+        List<Long> doNotThrowIdList = List.of(expectedBarista1.getId());
+        List<Long> notFoundIdList = List.of(expectedBarista1.getId(), 99L);
+
+        assertThrows(NullParamException.class, () -> baristaRepository.findById((List<Long>) null));
+        assertDoesNotThrow(() -> baristaRepository.findById(doNotThrowIdList));
+        assertThrows(BaristaNotFoundException.class, () -> baristaRepository.findById(notFoundIdList));
     }
 }
