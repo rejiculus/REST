@@ -2,9 +2,9 @@ package org.example.service.mapper;
 
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
-import org.example.repository.OrderRepository;
 import org.example.service.dto.ICoffeeCreateDTO;
 import org.example.service.dto.ICoffeeUpdateDTO;
+import org.example.service.gateway.OrderRepository;
 
 /**
  * Mapper form ICoffeeCreateDTO and ICoffeeUpdateDTO to Coffee entity.

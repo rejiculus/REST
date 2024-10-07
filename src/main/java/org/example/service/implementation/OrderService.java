@@ -1,23 +1,22 @@
-package org.example.service.imp;
+package org.example.service.implementation;
 
 import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
-import org.example.repository.BaristaRepository;
-import org.example.repository.CoffeeRepository;
-import org.example.repository.OrderRepository;
 import org.example.repository.exception.KeyNotPresentException;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.service.IOrderService;
 import org.example.service.dto.IOrderCreateDTO;
 import org.example.service.dto.IOrderUpdateDTO;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
 import org.example.service.exception.OrderAlreadyCompletedException;
 import org.example.service.exception.OrderHasReferencesException;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
 import org.example.service.mapper.OrderDtoToOrderMapper;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -58,13 +57,7 @@ public class OrderService implements IOrderService {
         order.setPrice(price * (1.0 + order.getBarista().getTipSize()));
         order.setCreated(LocalDateTime.now());
 
-
-        order = this.orderRepository.create(order);
-        List<Coffee> actualCoffeeList = order.getCoffeeList();
-        for (Coffee coffee : actualCoffeeList) {
-            orderRepository.addReference(order.getId(), coffee.getId());
-        }
-        return order;
+        return this.orderRepository.create(order);
     }
 
     /**
@@ -91,24 +84,7 @@ public class OrderService implements IOrderService {
                 .reduce(0.0, Double::sum, Double::sum);
         order.setPrice(price * (1.0 + order.getBarista().getTipSize()));
 
-        order = this.orderRepository.update(order);
-
-        //update order - coffee references
-        List<Coffee> expectedCoffeeList = coffeeRepository.findByOrderId(order.getId());
-        List<Coffee> actualCoffeeList = order.getCoffeeList();
-        List<Coffee> deletedCoffees = new ArrayList<>(expectedCoffeeList);
-        List<Coffee> addedCoffees = new ArrayList<>(actualCoffeeList);
-        deletedCoffees.removeAll(actualCoffeeList);
-        actualCoffeeList.removeAll(expectedCoffeeList);
-
-        for (Coffee coffee : deletedCoffees) {
-            orderRepository.deleteReference(order.getId(), coffee.getId());
-        }
-        for (Coffee coffee : addedCoffees) {
-            orderRepository.addReference(order.getId(), coffee.getId());
-        }
-
-        return order;
+        return this.orderRepository.update(order);
     }
 
     /**
@@ -131,8 +107,6 @@ public class OrderService implements IOrderService {
             throw new OrderHasReferencesException(id);
 
         this.orderRepository.delete(id);
-
-        orderRepository.deletePairsByOrderId(id);
     }
 
     /**

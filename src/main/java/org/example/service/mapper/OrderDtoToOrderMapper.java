@@ -4,10 +4,10 @@ import org.example.entity.Barista;
 import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
-import org.example.repository.BaristaRepository;
-import org.example.repository.CoffeeRepository;
 import org.example.service.dto.IOrderCreateDTO;
 import org.example.service.dto.IOrderUpdateDTO;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.CoffeeRepository;
 
 import java.util.List;
 

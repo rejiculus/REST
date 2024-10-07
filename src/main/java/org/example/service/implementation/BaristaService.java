@@ -1,15 +1,15 @@
-package org.example.service.imp;
+package org.example.service.implementation;
 
 import org.example.entity.Barista;
 import org.example.entity.Order;
 import org.example.entity.exception.*;
-import org.example.repository.BaristaRepository;
-import org.example.repository.OrderRepository;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.service.IBaristaService;
 import org.example.service.dto.IBaristaCreateDTO;
 import org.example.service.dto.IBaristaUpdateDTO;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.OrderRepository;
 import org.example.service.mapper.BaristaDtoToBaristaMapper;
 
 import java.util.ArrayList;

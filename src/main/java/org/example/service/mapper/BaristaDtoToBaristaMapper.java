@@ -2,9 +2,9 @@ package org.example.service.mapper;
 
 import org.example.entity.Barista;
 import org.example.entity.exception.*;
-import org.example.repository.OrderRepository;
 import org.example.service.dto.IBaristaCreateDTO;
 import org.example.service.dto.IBaristaUpdateDTO;
+import org.example.service.gateway.OrderRepository;
 
 
 /**

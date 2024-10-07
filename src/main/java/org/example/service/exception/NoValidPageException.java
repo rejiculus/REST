@@ -1,4 +1,4 @@
-package org.example.repository.exception;
+package org.example.service.exception;
 
 /**
  * Thrown when specified number of page is less than zero.

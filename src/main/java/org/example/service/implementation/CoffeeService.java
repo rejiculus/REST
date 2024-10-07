@@ -1,20 +1,18 @@
-package org.example.service.imp;
+package org.example.service.implementation;
 
 import org.example.entity.Coffee;
-import org.example.entity.Order;
 import org.example.entity.exception.*;
-import org.example.repository.CoffeeRepository;
-import org.example.repository.OrderRepository;
 import org.example.repository.exception.KeyNotPresentException;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.service.ICoffeeService;
 import org.example.service.dto.ICoffeeCreateDTO;
 import org.example.service.dto.ICoffeeUpdateDTO;
 import org.example.service.exception.CoffeeHasReferenceException;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
 import org.example.service.mapper.CoffeeDtoToCoffeeMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,23 +81,8 @@ public class CoffeeService implements ICoffeeService {
             throw new NullParamException();
 
         Coffee coffee = mapper.map(coffeeDTO);
-        coffee = this.coffeeRepository.update(coffee);
 
-        //update order - coffee references
-        List<Order> expectedOrderList = orderRepository.findByCoffeeId(coffee.getId());
-        List<Order> actualOrderList = coffee.getOrderList();
-        List<Order> deletedOrders = new ArrayList<>(expectedOrderList);
-        List<Order> addedOrders = new ArrayList<>(actualOrderList);
-        deletedOrders.removeAll(actualOrderList);
-        actualOrderList.removeAll(expectedOrderList);
-
-        for (Order order : deletedOrders) {
-            coffeeRepository.deleteReference(order.getId(), coffee.getId());
-        }
-        for (Order order : addedOrders) {
-            coffeeRepository.addReference(order.getId(), coffee.getId());
-        }
-        return coffee;
+        return this.coffeeRepository.update(coffee);
     }
 
     /**
@@ -122,9 +105,6 @@ public class CoffeeService implements ICoffeeService {
             throw new CoffeeHasReferenceException(id);
 
         this.coffeeRepository.delete(id);
-
-        coffeeRepository.deleteReferencesByCoffeeId(id);
-
     }
 
     /**
