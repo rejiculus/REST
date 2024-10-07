@@ -6,16 +6,16 @@ import jakarta.servlet.annotation.WebListener;
 import org.example.db.ConfigLoader;
 import org.example.db.ConnectionManager;
 import org.example.db.ConnectionManagerImp;
-import org.example.repository.BaristaRepository;
-import org.example.repository.CoffeeRepository;
-import org.example.repository.OrderRepository;
+import org.example.repository.BaristaRepositoryImp;
+import org.example.repository.CoffeeRepositoryImp;
+import org.example.repository.OrderRepositoryImp;
 import org.example.repository.exception.DataBaseException;
-import org.example.repository.imp.BaristaRepositoryImp;
-import org.example.repository.imp.CoffeeRepositoryImp;
-import org.example.repository.imp.OrderRepositoryImp;
-import org.example.service.imp.BaristaService;
-import org.example.service.imp.CoffeeService;
-import org.example.service.imp.OrderService;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
+import org.example.service.implementation.BaristaService;
+import org.example.service.implementation.CoffeeService;
+import org.example.service.implementation.OrderService;
 
 import java.util.logging.Logger;
 

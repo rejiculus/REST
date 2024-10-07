@@ -2,7 +2,7 @@ package org.example.repository.mapper;
 
 import org.example.entity.Barista;
 import org.example.entity.Order;
-import org.example.repository.BaristaRepository;
+import org.example.service.gateway.BaristaRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

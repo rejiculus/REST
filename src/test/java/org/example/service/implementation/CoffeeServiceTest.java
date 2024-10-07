@@ -1,11 +1,12 @@
-package org.example.service.imp;
+package org.example.service.implementation;
 
 import org.example.entity.Coffee;
 import org.example.entity.exception.*;
-import org.example.repository.CoffeeRepository;
-import org.example.repository.OrderRepository;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
+import org.example.service.implementation.CoffeeService;
 import org.example.servlet.dto.CoffeeCreateDTO;
 import org.example.servlet.dto.CoffeeUpdateDTO;
 import org.junit.jupiter.api.AfterAll;

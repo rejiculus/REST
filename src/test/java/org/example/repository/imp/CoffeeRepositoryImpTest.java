@@ -8,11 +8,14 @@ import org.example.entity.Order;
 import org.example.entity.exception.CoffeeNotFoundException;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
-import org.example.repository.BaristaRepository;
-import org.example.repository.CoffeeRepository;
-import org.example.repository.OrderRepository;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
+import org.example.repository.BaristaRepositoryImp;
+import org.example.repository.CoffeeRepositoryImp;
+import org.example.repository.OrderRepositoryImp;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -213,13 +216,9 @@ class CoffeeRepositoryImpTest {
 
         Barista barista = new Barista("Name");
         barista = baristaRepository.create(barista);
-        Order order = new Order(barista, List.of());
+        Order order = new Order(barista, List.of(specificCoffee1, specificCoffee2, specificCoffee3));
         order.setCreated(LocalDateTime.now());
         Order specificOrder = orderRepository.create(order);
-
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee1.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee2.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee3.getId());
 
         List<Coffee> resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
 
@@ -242,34 +241,26 @@ class CoffeeRepositoryImpTest {
 
         Barista barista = new Barista("Name");
         barista = baristaRepository.create(barista);
-        Order order = new Order(barista, List.of());
-        order.setCreated(LocalDateTime.now());
-        Order specificOrder = orderRepository.create(order);
-        Order specificOrder2 = orderRepository.create(order);
+        Order order1 = new Order(barista, List.of(specificCoffee2, specificCoffee3));
+        Order order2 = new Order(barista, List.of(specificCoffee1, specificCoffee2));
+        order1.setCreated(LocalDateTime.now());
+        order2.setCreated(LocalDateTime.now());
+        Order specificOrder1 = orderRepository.create(order1);
+        Order specificOrder2 = orderRepository.create(order2);
 
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee1.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee2.getId());
-        coffeeRepository.addReference(specificOrder2.getId(), specificCoffee1.getId());
-        coffeeRepository.addReference(specificOrder2.getId(), specificCoffee3.getId());
+        coffeeRepository.delete(specificCoffee1.getId());
 
-        List<Coffee> resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
-        assertEquals(List.of(specificCoffee1, specificCoffee2), resultCoffeeList);
-        resultCoffeeList = coffeeRepository.findByOrderId(specificOrder2.getId());
-        assertEquals(List.of(specificCoffee1, specificCoffee3), resultCoffeeList);
-
-        coffeeRepository.deleteReferencesByCoffeeId(specificCoffee1.getId());
-
-        resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
-        assertEquals(List.of(specificCoffee2), resultCoffeeList);
-        resultCoffeeList = coffeeRepository.findByOrderId(specificOrder2.getId());
-        assertEquals(List.of(specificCoffee3), resultCoffeeList);
+        List<Coffee> resultCoffeeList1 = coffeeRepository.findByOrderId(specificOrder1.getId());
+        List<Coffee> resultCoffeeList2 = coffeeRepository.findByOrderId(specificOrder2.getId());
+        assertEquals(List.of(specificCoffee2, specificCoffee3), resultCoffeeList1);
+        assertEquals(List.of(specificCoffee2), resultCoffeeList2);
 
     }
 
     @Test
     void deleteReferencesByCoffeeIdWrongTest() {
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.deleteReferencesByCoffeeId(null));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.deleteReferencesByCoffeeId(-1L));
+        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.delete(null));
+        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.delete(-1L));
     }
 
 

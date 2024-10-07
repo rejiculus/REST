@@ -7,10 +7,9 @@ import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
-import org.example.repository.exception.KeyNotPresentException;
-import org.example.repository.imp.BaristaRepositoryImp;
-import org.example.repository.imp.CoffeeRepositoryImp;
-import org.example.repository.imp.OrderRepositoryImp;
+import org.example.service.gateway.BaristaRepository;
+import org.example.service.gateway.CoffeeRepository;
+import org.example.service.gateway.OrderRepository;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,28 +55,15 @@ class ManyToManyRepositoryTest {
 
         Barista barista = new Barista("Name");
         barista = baristaRepository.create(barista);
-        Order order = new Order(barista, List.of());
+        Order order = new Order(barista, List.of(specificCoffee1, specificCoffee2, specificCoffee3));
         order.setCreated(LocalDateTime.now());
         Order specificOrder = orderRepository.create(order);
-
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee1.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee2.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee3.getId());
 
         List<Coffee> resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
 
         assertEquals(List.of(specificCoffee1, specificCoffee2, specificCoffee3), resultCoffeeList);
     }
 
-    @Test
-    void addReferenceWrongTest() {
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.addReference(null, 1L));
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.addReference(1L, null));
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.addReference(null, null));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.addReference(100L, -100L));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.addReference(-100L, 100L));
-        Assertions.assertThrows(KeyNotPresentException.class, () -> coffeeRepository.addReference(1L, 100L));
-    }
 
     @Test
     void deleteReferenceTest() {
@@ -88,19 +74,15 @@ class ManyToManyRepositoryTest {
 
         Barista barista = new Barista("Name");
         barista = baristaRepository.create(barista);
-        Order order = new Order(barista, List.of());
+        Order order = new Order(barista, List.of(specificCoffee1, specificCoffee2, specificCoffee3));
         order.setCreated(LocalDateTime.now());
         Order specificOrder = orderRepository.create(order);
-
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee1.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee2.getId());
-        coffeeRepository.addReference(specificOrder.getId(), specificCoffee3.getId());
 
         List<Coffee> resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
 
         assertEquals(List.of(specificCoffee1, specificCoffee2, specificCoffee3), resultCoffeeList);
 
-        coffeeRepository.deleteReference(specificOrder.getId(), specificCoffee1.getId());
+        coffeeRepository.delete(specificCoffee1.getId());
 
         resultCoffeeList = coffeeRepository.findByOrderId(specificOrder.getId());
         assertEquals(List.of(specificCoffee2, specificCoffee3), resultCoffeeList);
@@ -108,11 +90,8 @@ class ManyToManyRepositoryTest {
 
     @Test
     void deleteReferenceWrongTest() {
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.deleteReference(null, 1L));
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.deleteReference(1L, null));
-        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.deleteReference(null, null));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.deleteReference(100L, -100L));
-        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.deleteReference(-100L, 100L));
+        Assertions.assertThrows(NullParamException.class, () -> coffeeRepository.delete(null));
+        Assertions.assertThrows(NoValidIdException.class, () -> coffeeRepository.delete(-100L));
 
     }
 
