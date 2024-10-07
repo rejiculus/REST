@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.example.repository.exception.DataBaseException;
 
 public interface SimpleMapper<T> {
     /**
@@ -20,7 +21,7 @@ public interface SimpleMapper<T> {
      *
      * @param resultSet result data from sql query.
      * @return List of object with specified type.
-     * @throws SQLException
+     * @throws DataBaseException
      */
     default List<T> mapToList(ResultSet resultSet) throws SQLException {
         List<T> list = new ArrayList<>();
@@ -35,7 +36,7 @@ public interface SimpleMapper<T> {
      *
      * @param resultSet result data from sql query.
      * @return List of id.
-     * @throws SQLException
+     * @throws DataBaseException
      */
     default List<Long> mapIds(ResultSet resultSet) throws SQLException {
         List<Long> list = new ArrayList<>();
@@ -50,7 +51,7 @@ public interface SimpleMapper<T> {
      *
      * @param resultSet result data from sql query.
      * @return Optional object: if result's set next is false - optional.empty
-     * @throws SQLException
+     * @throws DataBaseException
      */
     default Optional<T> mapToOptional(ResultSet resultSet) throws SQLException {
         if (resultSet.next())

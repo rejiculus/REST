@@ -1,4 +1,4 @@
-package org.example.repository;
+package org.example.service.gateway;
 
 import org.example.entity.Barista;
 

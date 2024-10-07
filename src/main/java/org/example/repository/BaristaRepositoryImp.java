@@ -1,4 +1,4 @@
-package org.example.repository.imp;
+package org.example.repository;
 
 import org.example.db.ConnectionManager;
 import org.example.entity.Barista;
@@ -6,13 +6,13 @@ import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NoValidTipSizeException;
 import org.example.entity.exception.NullParamException;
-import org.example.repository.BaristaRepository;
 import org.example.repository.exception.DataBaseException;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.repository.mapper.BaristaMapper;
 import org.example.repository.until.BaristaSQL;
 import org.example.repository.until.QueryUntil;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.BaristaRepository;
 
 import java.sql.*;
 import java.util.*;

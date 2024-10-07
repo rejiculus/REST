@@ -1,23 +1,23 @@
-package org.example.repository.imp;
+package org.example.repository;
 
 import org.example.db.ConnectionManager;
 import org.example.entity.Coffee;
+import org.example.entity.Order;
 import org.example.entity.exception.CoffeeNotFoundException;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
-import org.example.repository.CoffeeRepository;
 import org.example.repository.exception.DataBaseException;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.repository.mapper.CoffeeMapper;
 import org.example.repository.until.CoffeeSQL;
-import org.example.repository.until.OrderCoffeeSQL;
 import org.example.repository.until.QueryUntil;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.CoffeeRepository;
 
 import java.sql.*;
 import java.util.*;
 
-public class CoffeeRepositoryImp extends CoffeeRepository {
+public class CoffeeRepositoryImp extends ReferredRepository implements CoffeeRepository {
     private final CoffeeMapper mapper;
 
     public CoffeeRepositoryImp(ConnectionManager connectionManager) {
@@ -49,6 +49,12 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
             if (resultSet.next())
                 newCoffee.setId(resultSet.getLong(1));
+
+            //add references
+            List<Long> orderIdList = newCoffee.getOrderList().stream()
+                    .map(Order::getId)
+                    .toList();
+            addAllReference(newCoffee.getId(), orderIdList);
 
             return newCoffee;
         } catch (SQLException e) {
@@ -82,6 +88,13 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
             if (preparedStatement.getUpdateCount() == 0)
                 throw new CoffeeNotFoundException(coffee.getId());
 
+            //add references
+            deleteReferencesByCoffeeId(newCoffee.getId());
+            List<Long> orderIdList = newCoffee.getOrderList().stream()
+                    .map(Order::getId)
+                    .toList();
+            addAllReference(orderIdList, newCoffee.getId());
+
             return newCoffee;
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
@@ -103,6 +116,8 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
             throw new NullParamException();
         if (id < 0)
             throw new NoValidIdException(id);
+
+        deleteReferencesByCoffeeId(id);
 
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement coffeePreparedStatement = connection.prepareStatement(CoffeeSQL.DELETE.toString())) {
@@ -264,30 +279,5 @@ public class CoffeeRepositoryImp extends CoffeeRepository {
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
         }
-    }
-
-    /**
-     * Delete all references coupled with coffee with specified id.
-     *
-     * @param coffeeId id that relations have to be deleted.
-     * @throws NullParamException when id param is null.
-     * @throws NoValidIdException when id is less than zero.
-     * @throws DataBaseException  sql exception.
-     */
-    @Override
-    public void deleteReferencesByCoffeeId(Long coffeeId) {
-        if (coffeeId == null)
-            throw new NullParamException();
-        if (coffeeId < 0)
-            throw new NoValidIdException(coffeeId);
-
-        try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_COFFEE_ID.toString())) {
-            preparedStatement.setLong(1, coffeeId);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
-
     }
 }

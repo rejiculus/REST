@@ -4,7 +4,7 @@ import org.example.entity.Barista;
 import org.example.entity.Order;
 import org.example.entity.exception.BaristaNotFoundException;
 import org.example.entity.exception.NullParamException;
-import org.example.repository.BaristaRepository;
+import org.example.service.gateway.BaristaRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

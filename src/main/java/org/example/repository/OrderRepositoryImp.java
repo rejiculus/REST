@@ -1,18 +1,18 @@
-package org.example.repository.imp;
+package org.example.repository;
 
 import org.example.db.ConnectionManager;
+import org.example.entity.Coffee;
 import org.example.entity.Order;
 import org.example.entity.exception.NoValidIdException;
 import org.example.entity.exception.NullParamException;
 import org.example.entity.exception.OrderNotFoundException;
-import org.example.repository.OrderRepository;
 import org.example.repository.exception.DataBaseException;
-import org.example.repository.exception.NoValidLimitException;
-import org.example.repository.exception.NoValidPageException;
 import org.example.repository.mapper.OrderMapper;
-import org.example.repository.until.OrderCoffeeSQL;
 import org.example.repository.until.OrderSQL;
 import org.example.repository.until.QueryUntil;
+import org.example.service.exception.NoValidLimitException;
+import org.example.service.exception.NoValidPageException;
+import org.example.service.gateway.OrderRepository;
 
 import java.sql.*;
 import java.util.*;
@@ -20,7 +20,7 @@ import java.util.*;
 /**
  * Class to interact with order entity in db.
  */
-public class OrderRepositoryImp extends OrderRepository {
+public class OrderRepositoryImp extends ReferredRepository implements OrderRepository {
     private final OrderMapper mapper;
 
     public OrderRepositoryImp(ConnectionManager connectionManager) {
@@ -53,7 +53,6 @@ public class OrderRepositoryImp extends OrderRepository {
 
             preparedStatement.setTimestamp(2, Timestamp.valueOf(newOrder.getCreated()));
 
-
             if (newOrder.getCompleted() != null)
                 preparedStatement.setTimestamp(3, Timestamp.valueOf(newOrder.getCompleted()));
             else preparedStatement.setTimestamp(3, null);
@@ -64,6 +63,13 @@ public class OrderRepositoryImp extends OrderRepository {
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
             if (resultSet.next())
                 newOrder.setId(resultSet.getLong(1));
+
+            //add relations
+            List<Long> coffeeIdList = newOrder.getCoffeeList().stream()
+                    .map(Coffee::getId)
+                    .toList();
+            addAllReference(newOrder.getId(), coffeeIdList);
+
 
             return newOrder;
         } catch (SQLException e) {
@@ -105,6 +111,13 @@ public class OrderRepositoryImp extends OrderRepository {
             if (preparedStatement.getUpdateCount() == 0)
                 throw new OrderNotFoundException(order.getId());
 
+            //update relations
+            deleteReferencesByOrderId(newOrder.getId());
+            List<Long> coffeeIdList = newOrder.getCoffeeList().stream()
+                    .map(Coffee::getId)
+                    .toList();
+            addAllReference(newOrder.getId(), coffeeIdList);
+
             return newOrder;
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
@@ -126,6 +139,8 @@ public class OrderRepositoryImp extends OrderRepository {
             throw new NullParamException();
         if (id < 0)
             throw new NoValidIdException(id);
+
+        deleteReferencesByOrderId(id);
 
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(OrderSQL.DELETE.toString())) {
@@ -340,30 +355,6 @@ public class OrderRepositoryImp extends OrderRepository {
             preparedStatement.setLong(1, orderId);
             preparedStatement.executeQuery();
 
-        } catch (SQLException e) {
-            throw new DataBaseException(e.getMessage());
-        }
-    }
-
-    /**
-     * Delete references between orders and coffees by specified order id.
-     *
-     * @param orderId id that relations have to be deleted.
-     * @throws NullParamException when orderId is null.
-     * @throws NoValidIdException when orderId is less than zero.
-     * @throws DataBaseException  sql exception.
-     */
-    @Override
-    public void deletePairsByOrderId(Long orderId) {
-        if (orderId == null)
-            throw new NullParamException();
-        if (orderId < 0)
-            throw new NoValidIdException(orderId);
-
-        try (Connection connection = connectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(OrderCoffeeSQL.DELETE_BY_ORDER_ID.toString())) {
-            preparedStatement.setLong(1, orderId);
-            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DataBaseException(e.getMessage());
         }

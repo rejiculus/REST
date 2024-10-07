@@ -1,8 +1,6 @@
-package org.example.repository;
+package org.example.service.gateway;
 
-import org.example.db.ConnectionManager;
 import org.example.entity.Order;
-import org.example.repository.until.OrderCoffeeSQL;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,10 +8,7 @@ import java.util.Optional;
 /**
  * Interface to interact with order in db.
  */
-public abstract class OrderRepository extends ManyToManyRepository {
-    protected OrderRepository(ConnectionManager connectionManager) {
-        super(connectionManager, OrderCoffeeSQL.UPDATE_PAIRS.toString(), OrderCoffeeSQL.DELETE_PAIR.toString());
-    }
+public interface OrderRepository {
 
     /**
      * Find all orders with specific barista's id.
@@ -21,7 +16,7 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param baristaId barista id.
      * @return list of orders with specified barista.
      */
-    public abstract List<Order> findByBaristaId(Long baristaId);
+    List<Order> findByBaristaId(Long baristaId);
 
     /**
      * Create order in db by specified entity.
@@ -29,7 +24,7 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param order reference to created object.
      * @return Order object with defined id.
      */
-    public abstract Order create(Order order);
+    Order create(Order order);
 
     /**
      * Update Order in db by specified entity.
@@ -37,21 +32,21 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param order reference to created object.
      * @return updated order object.
      */
-    public abstract Order update(Order order);
+    Order update(Order order);
 
     /**
      * Delete order by specified id.
      *
      * @param id deleting order's id.
      */
-    public abstract void delete(Long id);
+    void delete(Long id);
 
     /**
      * Find all orders in db.
      *
      * @return list of all orders.
      */
-    public abstract List<Order> findAll();
+    List<Order> findAll();
 
     /**
      * Find all order grouped by page and limited.
@@ -60,7 +55,7 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param limit number of maximum objects in list.
      * @return list of order in specified page.
      */
-    public abstract List<Order> findAllByPage(int page, int limit);
+    List<Order> findAllByPage(int page, int limit);
 
     /**
      * Find order by specified id.
@@ -68,7 +63,7 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param id order's id.
      * @return Optional Order object.
      */
-    public abstract Optional<Order> findById(Long id);
+    Optional<Order> findById(Long id);
 
 
     /**
@@ -77,14 +72,14 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param idList order id list.
      * @return List of Order objects.
      */
-    public abstract List<Order> findById(List<Long> idList);
+    List<Order> findById(List<Long> idList);
 
     /**
      * Set default barista to order with specified id.
      *
      * @param orderId updated order's id.
      */
-    public abstract void setBaristaDefault(Long orderId);
+    void setBaristaDefault(Long orderId);
 
     /**
      * Find all order by specified coffee id.
@@ -92,12 +87,5 @@ public abstract class OrderRepository extends ManyToManyRepository {
      * @param id coffee id.
      * @return list of order object's that contains specified coffee.
      */
-    public abstract List<Order> findByCoffeeId(Long id);
-
-    /**
-     * Delete references between orders and coffees by specified order id.
-     *
-     * @param orderId id that relations have to be deleted.
-     */
-    public abstract void deletePairsByOrderId(Long orderId);
+    List<Order> findByCoffeeId(Long id);
 }
