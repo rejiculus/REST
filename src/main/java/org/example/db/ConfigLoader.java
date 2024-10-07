@@ -1,5 +1,6 @@
 package org.example.db;
 
+import org.example.db.exception.PropertyNotPresentException;
 import org.example.entity.exception.NullParamException;
 import org.example.repository.exception.DataBaseException;
 
@@ -28,6 +29,9 @@ public class ConfigLoader {
     }
 
     public String getProperty(String key) {
+        if(!properties.contains(key))
+            throw new PropertyNotPresentException(key);
+
         return properties.getProperty(key);
     }
 }

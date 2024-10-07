@@ -51,12 +51,4 @@ public class ConnectionManagerImp implements ConnectionManager {
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
-
-
-    public void close() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-        }
-
-    }
 }
