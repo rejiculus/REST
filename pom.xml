@@ -73,25 +73,19 @@
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.13.0</version>
-        </dependency>
-
     </dependencies>
     <build>
         <plugins>
             <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.5.1</version>
-            <configuration>
-                <includes>
-                    <include>**/*Test.java</include>
-                </includes>
-            </configuration>
-        </plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -102,11 +96,17 @@
                 </configuration>
             </plugin>
         </plugins>
-        <testResources>
-            <testResource>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
                 <directory>src/test/resources</directory>
-            </testResource>
-        </testResources>
+                <includes>
+                    <include>**/*.sql</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
 </project>
